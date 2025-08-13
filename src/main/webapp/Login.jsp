@@ -17,7 +17,8 @@
 </head>
 <body>
   <header>
-    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e86b119f-a0fb-4a15-a070-35e908a69dd2.png" alt="Logo rond officiel avec texte et emblème circulaire bleu marine et rouge" onerror="this.style.display='none'"/>
+    <img src="assets/img/logo_dgsr.png" alt="Logo carré bleu et noir officiel de la Direction Générale Sécurité Routière"
+        class="w-14 h-14 object-cover"/>
     <div class="title">
       <span>Système de Gestion</span>
       <span>de pointage</span>

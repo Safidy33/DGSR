@@ -71,15 +71,15 @@
         <div>de pointage</div>
       </div>
     </div>
-    <div class="flex items-center space-x-4">
-      <div class="flex items-center space-x-2">
-        
+	    <div class="flex items-center space-x-4">
+    <div class="flex items-center space-x-2">
         <span class="font-semibold"><%= adminName %></span>
-      </div>
-      <button class="btn-deconnexion text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:shadow-2xl transition">
-        Déconnexion
-      </button>
     </div>
+    <a href="LogoutServlet" 
+       class="btn-deconnexion text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:shadow-2xl transition">
+        Déconnexion
+    </a>
+</div>
   </header>
 
   <div class="flex flex-1 min-h-0">
