@@ -1,8 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.LinkedHashMap" %>
+<%@ page import="models.Pointage" %>
 <%
     String adminName = "Admin"; // valeur par défaut
     if (session != null && session.getAttribute("email") != null) {
-        adminName = (String) session.getAttribute("email"); // ou nom réel si stocké en session
+        adminName = (String) session.getAttribute("email");
     }
 %>
 <!DOCTYPE html>
@@ -61,25 +66,20 @@
         </svg>
       </button>
 
-      <img
-        src="assets/img/logo_dgsr.png"
-        alt="Logo carré bleu et noir officiel de la Direction Générale Sécurité Routière"
-        class="w-14 h-14 object-cover"
-      />
+      <img src="assets/img/logo_dgsr.png" alt="Logo DGS" class="w-14 h-14 object-cover"/>
       <div class="leading-tight font-semibold max-w-xs">
         <div>Système de Gestion</div>
         <div>de pointage</div>
       </div>
     </div>
-	    <div class="flex items-center space-x-4">
-    <div class="flex items-center space-x-2">
-        <span class="font-semibold"><%= adminName %></span>
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2">
+          <span class="font-semibold"><%= adminName %></span>
+      </div>
+      <a href="LogoutServlet" class="btn-deconnexion text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:shadow-2xl transition">
+          Déconnexion
+      </a>
     </div>
-    <a href="LogoutServlet" 
-       class="btn-deconnexion text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:shadow-2xl transition">
-        Déconnexion
-    </a>
-</div>
   </header>
 
   <div class="flex flex-1 min-h-0">
@@ -131,7 +131,6 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto p-6">
-      <!-- NAVIGATION TABS -->
       <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
         <a href="#" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Tableau de Bord</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
@@ -150,13 +149,76 @@
             <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
               <tr>
                 <th class="pl-3 py-2 font-semibold">Nom</th>
-                <th class="py-2 font-semibold">Heure d'entrée</th>
-                <th class="py-2 font-semibold">Heure de sortie</th>
+                <th class="py-2 font-semibold text-center">Heure d'entrée</th>
+                <th class="py-2 font-semibold text-center">Heure de sortie</th>
                 <th class="pr-3 py-2 font-semibold text-center">Statut</th>
               </tr>
             </thead>
             <tbody>
-              <!-- Contenu dynamique -->
+            <%
+                List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
+                if (pointages != null && !pointages.isEmpty()) {
+                    Map<String, Map<String, String>> dernierParPersonnel = new LinkedHashMap<>();
+
+                    for (Pointage pt : pointages) {
+                        String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
+                        Map<String, String> heures = dernierParPersonnel.getOrDefault(nomComplet, new HashMap<>());
+
+                        if ("entree".equalsIgnoreCase(pt.getType())) {
+                            heures.put("entree", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                        } else if ("sortie".equalsIgnoreCase(pt.getType())) {
+                            heures.put("sortie", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                        }
+
+                        dernierParPersonnel.put(nomComplet, heures);
+                    }
+
+                    for (Map.Entry<String, Map<String, String>> entry : dernierParPersonnel.entrySet()) {
+                        String nomComplet = entry.getKey();
+                        Map<String, String> heures = entry.getValue();
+
+                        String entree = heures.get("entree");
+                        String sortie = heures.get("sortie");
+                        String couleurStatut = "-";
+                        String tooltip = "-";
+
+                        if (entree != null && sortie == null) {
+                            couleurStatut = "green";
+                            tooltip = "En train de travailler";
+                        } else if (entree != null && sortie != null) {
+                            couleurStatut = "red";
+                            tooltip = "Sortie effectuée";
+                        }
+            %>
+              <tr class="border-b border-gray-200">
+                <td class="pl-3 py-2"><%= nomComplet %></td>
+                <td class="py-2 text-center"><%= heures.getOrDefault("entree", "-") %></td>
+                <td class="py-2 text-center"><%= heures.getOrDefault("sortie", "-") %></td>
+                <td class="pr-3 py-2 text-center">
+                  <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
+                </td>
+              </tr>
+            <%
+                    }
+            %>
+              <!-- Légende en bas du tableau -->
+              <tr>
+                <td colspan="4" class="pt-4">
+                  <div class="flex items-center space-x-4 mt-2">
+                    <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En cours</span></div>
+                    <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>En interruption</span></div>
+                  </div>
+                </td>
+              </tr>
+            <%
+                } else {
+            %>
+              <tr>
+                <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
+              </tr>
+            <%
+                }
+            %>
             </tbody>
           </table>
         </div>

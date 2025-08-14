@@ -13,14 +13,22 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect("login.jsp");
+        // Redirige vers la page de login si accès direct
+        request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String email = request.getParameter("email");
         String motDePasse = request.getParameter("mot_de_passe");
+
+        if (email == null || motDePasse == null || email.isEmpty() || motDePasse.isEmpty()) {
+            // Champ vide
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=empty");
+            return;
+        }
 
         try (Connection conn = Database.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(
@@ -32,20 +40,28 @@ public class LoginServlet extends HttpServlet {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+                // Connexion réussie
                 HttpSession session = request.getSession();
                 session.setAttribute("email", email);
                 session.setAttribute("role", rs.getString("role"));
 
-                if ("admin".equals(rs.getString("role"))) {
-                    response.sendRedirect("dashboard.jsp");
+                String role = rs.getString("role");
+                if ("admin".equalsIgnoreCase(role)) {
+                    // Redirection admin vers le servlet qui affiche le dashboard
+                    response.sendRedirect(request.getContextPath() + "/PointageServlet");
                 } else {
-                    response.sendRedirect("canner.jsp");
+                    // Redirection utilisateur normal
+                    response.sendRedirect(request.getContextPath() + "/canner.jsp");
                 }
+
             } else {
-                response.sendRedirect("login.jsp?error=1");
+                // Identifiants incorrects
+                response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
             }
+
         } catch (Exception e) {
             e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/login.jsp?error=server");
         }
     }
 }
