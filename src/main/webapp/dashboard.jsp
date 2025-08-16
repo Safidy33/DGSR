@@ -9,6 +9,11 @@
     if (session != null && session.getAttribute("email") != null) {
         adminName = (String) session.getAttribute("email");
     }
+
+    // Récupération des attributs envoyés par le servlet
+    int presentCount = (request.getAttribute("presentCount") != null) ? (int) request.getAttribute("presentCount") : 0;
+    int absentCount = (request.getAttribute("absentCount") != null) ? (int) request.getAttribute("absentCount") : 0;
+    int totalPersonnel = (request.getAttribute("totalPersonnel") != null) ? (int) request.getAttribute("totalPersonnel") : 0;
 %>
 <!DOCTYPE html>
 <html lang="fr">
@@ -49,6 +54,36 @@
     input[type="date"]::-webkit-calendar-picker-indicator {
       filter: invert(33%) sepia(88%) saturate(538%) hue-rotate(355deg) brightness(89%) contrast(88%);
       cursor: pointer;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .stat-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.75rem;
+    }
+    .present-icon {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    .absent-icon {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .total-icon {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
     }
   </style>
 </head>
@@ -139,90 +174,144 @@
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
       </nav>
 
-      <!-- Contenu dynamique -->
-      <section class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-8 mb-16">
-        <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
-          <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
-            Statut actuel
+      <!-- Contenu dynamique avec nouveau layout -->
+      <section class="max-w-6xl mx-auto mb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+          
+          <!-- Section tableau de gauche -->
+          <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
+            <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
+              Statut actuel
+            </div>
+
+            <table class="w-full text-sm text-left text-gray-900 border-collapse mt-4">
+              <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
+                <tr>
+                  <th class="pl-3 py-2 font-semibold">Nom</th>
+                  <th class="py-2 font-semibold text-center">Heure d'entrée</th>
+                  <th class="py-2 font-semibold text-center">Heure de sortie</th>
+                  <th class="pr-3 py-2 font-semibold text-center">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+              <%
+                  List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
+                  if (pointages != null && !pointages.isEmpty()) {
+                      Map<String, Map<String, String>> dernierParPersonnel = new LinkedHashMap<>();
+
+                      for (Pointage pt : pointages) {
+                          String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
+                          Map<String, String> heures = dernierParPersonnel.getOrDefault(nomComplet, new HashMap<>());
+
+                          if ("entree".equalsIgnoreCase(pt.getType())) {
+                              heures.put("entree", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                          } else if ("sortie".equalsIgnoreCase(pt.getType())) {
+                              heures.put("sortie", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                          }
+
+                          dernierParPersonnel.put(nomComplet, heures);
+                      }
+
+                      for (Map.Entry<String, Map<String, String>> entry : dernierParPersonnel.entrySet()) {
+                          String nomComplet = entry.getKey();
+                          Map<String, String> heures = entry.getValue();
+
+                          String entree = heures.get("entree");
+                          String sortie = heures.get("sortie");
+                          String couleurStatut = "-";
+                          String tooltip = "-";
+
+                          if (entree != null && sortie == null) {
+                              couleurStatut = "green";
+                              tooltip = "En train de travailler";
+                          } else if (entree != null && sortie != null) {
+                              couleurStatut = "red";
+                              tooltip = "Sortie effectuée";
+                          }
+              %>
+                <tr class="border-b border-gray-200">
+                  <td class="pl-3 py-2"><%= nomComplet %></td>
+                  <td class="py-2 text-center"><%= heures.getOrDefault("entree", "-") %></td>
+                  <td class="py-2 text-center"><%= heures.getOrDefault("sortie", "-") %></td>
+                  <td class="pr-3 py-2 text-center">
+                    <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
+                  </td>
+                </tr>
+              <%
+                      }
+              %>
+                <!-- Légende en bas du tableau -->
+                <tr>
+                  <td colspan="4" class="pt-4">
+                    <div class="flex items-center space-x-4 mt-2">
+                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En cours</span></div>
+                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>En interruption</span></div>
+                    </div>
+                  </td>
+                </tr>
+              <%
+                  } else {
+              %>
+                <tr>
+                  <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
+                </tr>
+              <%
+                  }
+              %>
+              </tbody>
+            </table>
           </div>
-          <table class="w-full text-sm text-left text-gray-900 border-collapse">
-            <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
-              <tr>
-                <th class="pl-3 py-2 font-semibold">Nom</th>
-                <th class="py-2 font-semibold text-center">Heure d'entrée</th>
-                <th class="py-2 font-semibold text-center">Heure de sortie</th>
-                <th class="pr-3 py-2 font-semibold text-center">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-            <%
-                List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
-                if (pointages != null && !pointages.isEmpty()) {
-                    Map<String, Map<String, String>> dernierParPersonnel = new LinkedHashMap<>();
 
-                    for (Pointage pt : pointages) {
-                        String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
-                        Map<String, String> heures = dernierParPersonnel.getOrDefault(nomComplet, new HashMap<>());
+          <!-- Section statistiques à droite -->
+          <div class="space-y-6">
+            
+            <!-- Carte Personnel Présent -->
+            <div class="stat-card">
+              <div class="stat-icon present-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M16 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
+                  <circle cx="12.5" cy="7" r="4"/>
+                  <path d="M20 8v6M23 11h-6"/>
+                </svg>
+              </div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">PERSONNEL PRÉSENT</h3>
+              <p class="text-3xl font-bold text-gray-900"><%= presentCount %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
+              <a href="#" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
+            </div>
 
-                        if ("entree".equalsIgnoreCase(pt.getType())) {
-                            heures.put("entree", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
-                        } else if ("sortie".equalsIgnoreCase(pt.getType())) {
-                            heures.put("sortie", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
-                        }
+            <!-- Carte Personnel Absent -->
+            <div class="stat-card">
+              <div class="stat-icon absent-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M16 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
+                  <circle cx="12.5" cy="7" r="4"/>
+                  <path d="M18 8l5 5M23 8l-5 5"/>
+                </svg>
+              </div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">PERSONNEL ABSENT</h3>
+              <p class="text-3xl font-bold text-gray-900"><%= absentCount %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
+              <a href="#" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
+            </div>
 
-                        dernierParPersonnel.put(nomComplet, heures);
-                    }
+            <!-- Carte Total Personnel -->
+            <div class="stat-card">
+              <div class="stat-icon total-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+              </div>
+              <h3 class="text-sm font-medium text-gray-500 mb-1">TOTAL PERSONNEL</h3>
+              <p class="text-3xl font-bold text-gray-900"><%= totalPersonnel %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
+            </div>
 
-                    for (Map.Entry<String, Map<String, String>> entry : dernierParPersonnel.entrySet()) {
-                        String nomComplet = entry.getKey();
-                        Map<String, String> heures = entry.getValue();
+          </div>
 
-                        String entree = heures.get("entree");
-                        String sortie = heures.get("sortie");
-                        String couleurStatut = "-";
-                        String tooltip = "-";
-
-                        if (entree != null && sortie == null) {
-                            couleurStatut = "green";
-                            tooltip = "En train de travailler";
-                        } else if (entree != null && sortie != null) {
-                            couleurStatut = "red";
-                            tooltip = "Sortie effectuée";
-                        }
-            %>
-              <tr class="border-b border-gray-200">
-                <td class="pl-3 py-2"><%= nomComplet %></td>
-                <td class="py-2 text-center"><%= heures.getOrDefault("entree", "-") %></td>
-                <td class="py-2 text-center"><%= heures.getOrDefault("sortie", "-") %></td>
-                <td class="pr-3 py-2 text-center">
-                  <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
-                </td>
-              </tr>
-            <%
-                    }
-            %>
-              <!-- Légende en bas du tableau -->
-              <tr>
-                <td colspan="4" class="pt-4">
-                  <div class="flex items-center space-x-4 mt-2">
-                    <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En cours</span></div>
-                    <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>En interruption</span></div>
-                  </div>
-                </td>
-              </tr>
-            <%
-                } else {
-            %>
-              <tr>
-                <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
-              </tr>
-            <%
-                }
-            %>
-            </tbody>
-          </table>
         </div>
       </section>
+      
     </main>
   </div>
 
