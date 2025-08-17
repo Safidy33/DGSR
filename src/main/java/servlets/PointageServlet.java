@@ -25,10 +25,11 @@ public class PointageServlet extends HttpServlet {
         int totalPersonnel = 0;
 
         try (Connection conn = Database.getConnection()) {
-            // Récupérer les 10 derniers pointages
+            // ✅ Récupérer les 10 derniers pointages du jour
             String sql = "SELECT p.date_pointage, p.type, pe.nom, pe.prenom, p.statut " +
                          "FROM pointage p " +
                          "JOIN personnel pe ON p.personnel_id = pe.id " +
+                         "WHERE DATE(p.date_pointage) = CURRENT_DATE " +   // filtre sur aujourd'hui
                          "ORDER BY p.date_pointage DESC " +
                          "LIMIT 10";
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -46,7 +47,7 @@ public class PointageServlet extends HttpServlet {
             rs.close();
             ps.close();
 
-            // Get total personnel count
+            // ✅ Total du personnel
             String sqlTotal = "SELECT COUNT(*) FROM personnel";
             PreparedStatement psTotal = conn.prepareStatement(sqlTotal);
             ResultSet rsTotal = psTotal.executeQuery();
@@ -56,7 +57,7 @@ public class PointageServlet extends HttpServlet {
             rsTotal.close();
             psTotal.close();
 
-            // Compter les personnels présents (ayant fait un pointage aujourd'hui)
+            // ✅ Présents aujourd'hui
             String sqlPresent = "SELECT COUNT(DISTINCT personnel_id) FROM pointage " +
                                "WHERE DATE(date_pointage) = CURRENT_DATE";
             PreparedStatement psPresent = conn.prepareStatement(sqlPresent);
@@ -67,17 +68,19 @@ public class PointageServlet extends HttpServlet {
             rsPresent.close();
             psPresent.close();
 
-            // Calculer les absents (total - présents)
+            // ✅ Absents
             absentCount = totalPersonnel - presentCount;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // ✅ Passer les données à la JSP
         request.setAttribute("derniersPointages", derniersPointages);
         request.setAttribute("presentCount", presentCount);
         request.setAttribute("absentCount", absentCount);
         request.setAttribute("totalPersonnel", totalPersonnel);
+
         request.getRequestDispatcher("dashboard.jsp").forward(request, response);
     }
 }
