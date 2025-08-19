@@ -2,12 +2,11 @@
 <%@ page import="java.util.List" %>
 <%@ page import="models.Personnel" %>
 <%
-    String adminName = "Admin"; // valeur par défaut
+    String adminName = "Admin"; 
     if (session != null && session.getAttribute("email") != null) {
         adminName = (String) session.getAttribute("email");
     }
 
-    // Récupération de la liste des personnels
     List<Personnel> personnels = (List<Personnel>) request.getAttribute("personnels");
     if (personnels == null) {
         personnels = java.util.Collections.emptyList();
@@ -94,39 +93,11 @@
         Menu Rapide
       </h2>
       <nav class="flex flex-col space-y-6 text-gray-700 px-6">
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4"/>
-            </svg>
-            <span>Nouveau personnel</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M3 7h18M3 12h18M3 17h18"/>
-            </svg>
-            <span>Générer Rapport</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
-            </svg>
-            <span>Voir Présents</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M17 16v3m-10-3v3"/>
-            </svg>
-            <span>Voir Absents</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M3 3v18h18"/>
-                <path d="M16 9v6M9 12h6"/>
-            </svg>
-            <span>Statistique</span>
-        </a>
+        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Nouveau personnel</a>
+        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Générer Rapport</a>
+        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Voir Présents</a>
+        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Voir Absents</a>
+        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Statistique</a>
       </nav>
     </aside>
 
@@ -143,30 +114,27 @@
       <!-- Contenu principal -->
       <section class="max-w-6xl mx-auto">
         <div class="bg-white rounded-lg shadow-lg p-6">
-          <!-- En-tête avec titre et bouton ajouter -->
+          <!-- En-tête -->
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Gestion du Personnel</h1>
-            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition action-btn flex items-center space-x-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4"/>
-              </svg>
-              <span>Ajouter Personnel</span>
-            </button>
           </div>
 
-          <!-- Barre de recherche et filtres -->
-          <div class="flex flex-col md:flex-row gap-4 mb-6">
+          <!-- Barre de recherche -->
+          <form method="get" action="gerer-personnel" class="flex flex-col md:flex-row gap-4 mb-6 w-full">
             <div class="flex-1">
-              <input type="text" placeholder="Rechercher un personnel..." 
+              <input type="text" name="search"
+                     value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>"
+                     placeholder="Rechercher un personnel..." 
                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
-            <select class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option value="">Tous les départements</option>
-              <option value="Informatique">Informatique</option>
-              <option value="Administration">Administration</option>
-              <option value="Comptabilité">Comptabilité</option>
+            <select name="departement" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="" <%= (request.getParameter("departement") == null || request.getParameter("departement").isEmpty()) ? "selected" : "" %>>Tous les départements</option>
+              <option value="Informatique" <%= "Informatique".equals(request.getParameter("departement")) ? "selected" : "" %>>Informatique</option>
+              <option value="Administration" <%= "Administration".equals(request.getParameter("departement")) ? "selected" : "" %>>Administration</option>
+              <option value="Comptabilité" <%= "Comptabilité".equals(request.getParameter("departement")) ? "selected" : "" %>>Comptabilité</option>
             </select>
-          </div>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Rechercher</button>
+          </form>
 
           <!-- Tableau du personnel -->
           <div class="overflow-x-auto">
@@ -182,7 +150,7 @@
                 </tr>
               </thead>
               <tbody>
-                <% if (personnels != null && !personnels.isEmpty()) { %>
+                <% if (!personnels.isEmpty()) { %>
                   <% for (Personnel personnel : personnels) { %>
                     <tr class="border-b border-gray-200 table-row">
                       <td class="px-4 py-3"><%= personnel.getId() %></td>
@@ -190,57 +158,19 @@
                       <td class="px-4 py-3"><%= personnel.getEmail() %></td>
                       <td class="px-4 py-3"><%= personnel.getDepartement() %></td>
                       <td class="px-4 py-3"><%= personnel.getNumeroEmploye() %></td>
-                      <td class="px-4 py-3">
-                        <div class="flex justify-center space-x-2">
-                          <button class="text-blue-600 hover:text-blue-800 action-btn" title="Modifier">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                          </button>
-                          <button class="text-red-600 hover:text-red-800 action-btn" title="Supprimer">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                              <polyline points="3 6 5 6 21 6"/>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            </svg>
-                          </button>
-                          <button class="text-green-600 hover:text-green-800 action-btn" title="Voir détails">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                              <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
+                      <td class="px-4 py-3 text-center">...</td>
                     </tr>
                   <% } %>
                 <% } else { %>
                   <tr>
-                    <td colspan="6" class="text-center py-8 text-gray-500">
-                      Aucun personnel trouvé dans la base de données.
-                    </td>
+                    <td colspan="6" class="text-center py-8 text-gray-500">Aucun personnel trouvé.</td>
                   </tr>
                 <% } %>
               </tbody>
             </table>
           </div>
-
-          <!-- Pagination -->
-          <div class="flex justify-between items-center mt-6">
-            <div class="text-sm text-gray-700">
-              <% if (personnels != null) { %>
-                Affichage de 1 à <%= personnels.size() %> sur <%= personnels.size() %> résultat(s)
-              <% } %>
-            </div>
-            <div class="flex space-x-2">
-              <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">Précédent</button>
-              <button class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">1</button>
-              <button class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">Suivant</button>
-            </div>
-          </div>
         </div>
       </section>
-      
     </main>
   </div>
 
