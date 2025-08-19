@@ -30,7 +30,17 @@ public class GererPersonnelServlet extends HttpServlet {
             return;
         }
 
+        String action = request.getParameter("action");
+        
         try {
+            if ("edit".equals(action)) {
+                handleEdit(request, response);
+                return;
+            } else if ("delete".equals(action)) {
+                handleDelete(request, response);
+                return;
+            }
+            
             String searchTerm = request.getParameter("search");
             String departement = request.getParameter("departement");
 
@@ -41,9 +51,46 @@ public class GererPersonnelServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Erreur lors de la récupération des personnels : " + e.getMessage());
+            request.setAttribute("error", "Erreur lors de l'opération : " + e.getMessage());
             request.getRequestDispatcher("/gerer_personnel.jsp").forward(request, response);
         }
+    }
+
+    private void handleEdit(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, Exception {
+        int id = Integer.parseInt(request.getParameter("id"));
+        Personnel personnel = getPersonnelById(id);
+        request.setAttribute("personnel", personnel);
+        request.getRequestDispatcher("/modifier_personnel.jsp").forward(request, response);
+    }
+
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, Exception {
+        int id = Integer.parseInt(request.getParameter("id"));
+        deletePersonnel(request);
+        response.sendRedirect("gerer-personnel");
+    }
+
+    private Personnel getPersonnelById(int id) throws Exception {
+        String sql = "SELECT id, nom, prenom, numero_employe, departement, Email, qr_code FROM personnel WHERE id = ?";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Personnel p = new Personnel();
+                    p.setId(rs.getInt("id"));
+                    p.setNom(rs.getString("nom"));
+                    p.setPrenom(rs.getString("prenom"));
+                    p.setNumeroEmploye(rs.getString("numero_employe"));
+                    p.setDepartement(rs.getString("departement"));
+                    p.setEmail(rs.getString("Email"));
+                    p.setQrCode(rs.getString("qr_code"));
+                    return p;
+                }
+            }
+        }
+        return null;
     }
 
     private List<Personnel> getPersonnels(String searchTerm, String departement) throws Exception {

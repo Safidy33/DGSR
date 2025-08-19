@@ -4,6 +4,8 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="models.Pointage" %>
+
+
 <%
     String adminName = "Admin"; // valeur par défaut
     if (session != null && session.getAttribute("email") != null) {
@@ -118,51 +120,8 @@
   </header>
 
   <div class="flex flex-1 min-h-0">
-
-    <!-- SIDEBAR -->
-    <aside id="sidebar"
-           class="fixed top-0 left-0 z-40 w-56 h-full bg-white border-r border-gray-200 py-6 overflow-y-auto
-                  transform -translate-x-full transition-transform duration-300 ease-in-out
-                  md:relative md:translate-x-0 md:flex md:flex-col">
-      <h2 class="px-6 font-bold text-lg flex items-center justify-between mb-6 cursor-default">
-        Menu Rapide
-      </h2>
-      <nav class="flex flex-col space-y-6 text-gray-700 px-6">
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4"/>
-            </svg>
-            <span>Nouveau personnel</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M3 7h18M3 12h18M3 17h18"/>
-            </svg>
-            <span>Générer Rapport</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
-            </svg>
-            <span>Voir Présents</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M17 16v3m-10-3v3"/>
-            </svg>
-            <span>Voir Absents</span>
-        </a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 stroke-current" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <path d="M3 3v18h18"/>
-                <path d="M16 9v6M9 12h6"/>
-            </svg>
-            <span>Statistique</span>
-        </a>
-      </nav>
-    </aside>
+	
+	<jsp:include page="Menu_rapide.jsp" />
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto p-6">

@@ -84,22 +84,7 @@
 
   <div class="flex flex-1 min-h-0">
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar"
-           class="fixed top-0 left-0 z-40 w-56 h-full bg-white border-r border-gray-200 py-6 overflow-y-auto
-                  transform -translate-x-full transition-transform duration-300 ease-in-out
-                  md:relative md:translate-x-0 md:flex md:flex-col">
-      <h2 class="px-6 font-bold text-lg flex items-center justify-between mb-6 cursor-default">
-        Menu Rapide
-      </h2>
-      <nav class="flex flex-col space-y-6 text-gray-700 px-6">
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Nouveau personnel</a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Générer Rapport</a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Voir Présents</a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Voir Absents</a>
-        <a href="#" class="flex items-center space-x-3 hover:text-blue-600 transition">Statistique</a>
-      </nav>
-    </aside>
+	<jsp:include page="Menu_rapide.jsp" />
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto p-6">
@@ -158,7 +143,25 @@
                       <td class="px-4 py-3"><%= personnel.getEmail() %></td>
                       <td class="px-4 py-3"><%= personnel.getDepartement() %></td>
                       <td class="px-4 py-3"><%= personnel.getNumeroEmploye() %></td>
-                      <td class="px-4 py-3 text-center">...</td>
+                      <td class="px-4 py-3 text-center">
+                        <div class="flex justify-center space-x-2">
+                          <a href="gerer-personnel?action=edit&id=<%= personnel.getId() %>" 
+                             class="text-blue-600 hover:text-blue-800 transition p-1 action-btn" 
+                             title="Modifier">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </a>
+                          <a href="gerer-personnel?action=delete&id=<%= personnel.getId() %>" 
+                             onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce personnel ?')"
+                             class="text-red-600 hover:text-red-800 transition p-1 action-btn" 
+                             title="Supprimer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </a>
+                        </div>
+                      </td>
                     </tr>
                   <% } %>
                 <% } else { %>
