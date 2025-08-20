@@ -1,6 +1,7 @@
     package models; // Ou servlets, selon votre organisation
 
-    import java.sql.Timestamp;
+    import java.sql.Date;
+import java.sql.Timestamp;
 
     public class Pointage {
         private Timestamp datePointage;
@@ -49,5 +50,25 @@
         public void setStatut(String statut) {
             this.statut = statut;
         }
+
+		public void setId(int int1) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void setDate(Date date) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void setMotif(String string) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void setNomPersonnel(Personnel personnel) {
+			// TODO Auto-generated method stub
+			
+		}
     }
     
