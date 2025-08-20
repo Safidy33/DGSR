@@ -84,7 +84,7 @@
     <main class="flex-1 overflow-auto p-6">
       <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
         <a href="PointageServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Tableau de Bord</a>
-        <a href="gerer_personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
+        <a href="gerer-personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Pointage</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Rapport</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
@@ -103,7 +103,7 @@
 
           <!-- Formulaire -->
           <form action="gerer-personnel" method="post" class="space-y-6">
-            <input type="hidden" name="action" value="create">
+            <input type="hidden" name="action" value="add">
             
             <!-- Informations personnelles -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -171,9 +171,18 @@
               <label for="qrCode" class="block text-sm font-medium text-gray-700 mb-2">
                 QR Code (optionnel)
               </label>
-              <input type="text" id="qrCode" name="qrCode"
-                     class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="Code QR pour le pointage">
+              <div class="flex items-center space-x-2">
+                <input type="text" id="qrCode" name="qrCode"
+                       class="form-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Code QR pour le pointage">
+                <button type="button" id="generateQR" 
+                        class="bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition text-sm">
+                  Générer
+                </button>
+              </div>
+              <div id="qrPreview" class="mt-2 hidden">
+                <img id="qrImage" alt="QR Code" class="border rounded-lg">
+              </div>
             </div>
 
             <!-- Boutons d'action -->

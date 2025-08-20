@@ -38,7 +38,7 @@
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="id" value="<%= personnel.getId() %>">
                 
-                <div class="rounded-md shadow-sm -space-y-px">
+            <div class="rounded-md shadow-sm -space-y-px">
                     <div>
                         <label for="nom" class="sr-only">Nom</label>
                         <input id="nom" name="nom" type="text" required 
@@ -74,8 +74,15 @@
                     <div>
                         <label for="email" class="sr-only">Email</label>
                         <input id="email" name="email" type="email" required 
-                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                placeholder="Email" value="<%= personnel.getEmail() %>">
+                    </div>
+                    
+                    <div>
+                        <label for="qrCode" class="sr-only">QR Code</label>
+                        <input id="qrCode" name="qrCode" type="text"
+                               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                               placeholder="QR Code" value="<%= personnel.getQrCode() != null ? personnel.getQrCode() : "" %>">
                     </div>
                 </div>
 

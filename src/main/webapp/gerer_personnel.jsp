@@ -131,6 +131,7 @@
                   <th class="px-4 py-3 font-semibold">Email</th>
                   <th class="px-4 py-3 font-semibold">Département</th>
                   <th class="px-4 py-3 font-semibold">Numéro Employé</th>
+                  <th class="px-4 py-3 font-semibold">QR Code</th>
                   <th class="px-4 py-3 font-semibold text-center">Actions</th>
                 </tr>
               </thead>
@@ -143,6 +144,7 @@
                       <td class="px-4 py-3"><%= personnel.getEmail() %></td>
                       <td class="px-4 py-3"><%= personnel.getDepartement() %></td>
                       <td class="px-4 py-3"><%= personnel.getNumeroEmploye() %></td>
+                      <td class="px-4 py-3"><%= personnel.getQrCode() != null ? personnel.getQrCode() : "" %></td>
                       <td class="px-4 py-3 text-center">
                         <div class="flex justify-center space-x-2">
                           <a href="gerer-personnel?action=edit&id=<%= personnel.getId() %>" 
