@@ -103,7 +103,7 @@
 
           <!-- Formulaire -->
           <form action="gerer-personnel" method="post" class="space-y-6">
-            <input type="hidden" name="action" value="create">
+            <input type="hidden" name="action" value="add">
             
             <!-- Informations personnelles -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -171,9 +171,18 @@
               <label for="qrCode" class="block text-sm font-medium text-gray-700 mb-2">
                 QR Code (optionnel)
               </label>
-              <input type="text" id="qrCode" name="qrCode"
-                     class="form-input w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                     placeholder="Code QR pour le pointage">
+              <div class="flex items-center space-x-2">
+                <input type="text" id="qrCode" name="qrCode"
+                       class="form-input flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Code QR pour le pointage">
+                <button type="button" id="generateQR" 
+                        class="bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition text-sm">
+                  Générer
+                </button>
+              </div>
+              <div id="qrPreview" class="mt-2 hidden">
+                <img id="qrImage" alt="QR Code" class="border rounded-lg">
+              </div>
             </div>
 
             <!-- Boutons d'action -->

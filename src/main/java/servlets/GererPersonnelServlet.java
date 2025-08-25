@@ -174,8 +174,9 @@ public class GererPersonnelServlet extends HttpServlet {
         String numeroEmploye = request.getParameter("numeroEmploye");
         String departement = request.getParameter("departement");
         String email = request.getParameter("email");
+        String qrCode = request.getParameter("qrCode");
 
-        String sql = "INSERT INTO personnel (nom, prenom, numero_employe, departement, Email) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO personnel (nom, prenom, numero_employe, departement, Email, qr_code) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -185,6 +186,7 @@ public class GererPersonnelServlet extends HttpServlet {
             stmt.setString(3, numeroEmploye);
             stmt.setString(4, departement);
             stmt.setString(5, email);
+            stmt.setString(6, qrCode != null && !qrCode.trim().isEmpty() ? qrCode : null);
             stmt.executeUpdate();
         }
     }
@@ -196,8 +198,9 @@ public class GererPersonnelServlet extends HttpServlet {
         String numeroEmploye = request.getParameter("numeroEmploye");
         String departement = request.getParameter("departement");
         String email = request.getParameter("email");
+        String qrCode = request.getParameter("qrCode");
 
-        String sql = "UPDATE personnel SET nom = ?, prenom = ?, numero_employe = ?, departement = ?, Email = ? WHERE id = ?";
+        String sql = "UPDATE personnel SET nom = ?, prenom = ?, numero_employe = ?, departement = ?, Email = ?, qr_code = ? WHERE id = ?";
 
         try (Connection conn = Database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -207,7 +210,8 @@ public class GererPersonnelServlet extends HttpServlet {
             stmt.setString(3, numeroEmploye);
             stmt.setString(4, departement);
             stmt.setString(5, email);
-            stmt.setInt(6, id);
+            stmt.setString(6, qrCode != null && !qrCode.trim().isEmpty() ? qrCode : null);
+            stmt.setInt(7, id);
             stmt.executeUpdate();
         }
     }
