@@ -235,7 +235,7 @@
               </div>
               <h3 class="text-sm font-medium text-gray-500 mb-1">PERSONNEL PRÉSENT</h3>
               <p class="text-3xl font-bold text-gray-900"><%= presentCount %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
-              <a href="#" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
+              <a href="PointageServlet?action=voir_presents" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
             </div>
 
             <!-- Carte Personnel Absent -->
