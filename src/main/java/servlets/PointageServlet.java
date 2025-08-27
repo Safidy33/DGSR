@@ -37,11 +37,14 @@ public class PointageServlet extends HttpServlet {
 
         } else if ("pointage".equals(action)) {
             // ✅ Page "Pointage" - Afficher tous les pointages du jour
+            System.out.println("Pointage action called");
             List<Pointage> pointagesDuJour = getPointagesDuJour();
+            System.out.println("Pointages du jour: " + (pointagesDuJour != null ? pointagesDuJour.size() : "null"));
             request.setAttribute("pointagesDuJour", pointagesDuJour);
             request.getRequestDispatcher("pointage.jsp").forward(request, response);
 
         } else {
+            System.out.println("Default case called - action parameter: " + action);
             // ✅ Dashboard par défaut
             List<Pointage> derniersPointages = new ArrayList<>();
             int presentCount = 0;
