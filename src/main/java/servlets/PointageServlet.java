@@ -35,6 +35,12 @@ public class PointageServlet extends HttpServlet {
             request.setAttribute("personnelsAbsents", personnelsAbsents);
             request.getRequestDispatcher("absents.jsp").forward(request, response);
 
+        } else if ("pointage".equals(action)) {
+            // ✅ Page "Pointage" - Afficher tous les pointages du jour
+            List<Pointage> pointagesDuJour = getPointagesDuJour();
+            request.setAttribute("pointagesDuJour", pointagesDuJour);
+            request.getRequestDispatcher("pointage.jsp").forward(request, response);
+
         } else {
             // ✅ Dashboard par défaut
             List<Pointage> derniersPointages = new ArrayList<>();
@@ -162,6 +168,36 @@ public class PointageServlet extends HttpServlet {
             e.printStackTrace();
         }
         return personnelsAbsents;
+    }
+
+    // ✅ Pointages du jour
+    private List<Pointage> getPointagesDuJour() {
+        List<Pointage> pointagesDuJour = new ArrayList<>();
+        try (Connection conn = Database.getConnection()) {
+            // Récupérer tous les pointages du jour
+            String sql = "SELECT p.date_pointage, p.type, pe.nom, pe.prenom, p.statut " +
+                         "FROM pointage p " +
+                         "JOIN personnel pe ON p.personnel_id = pe.id " +
+                         "WHERE DATE(p.date_pointage) = CURRENT_DATE " +
+                         "ORDER BY p.date_pointage DESC";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Pointage pointage = new Pointage();
+                pointage.setDatePointage(rs.getTimestamp("date_pointage"));
+                pointage.setType(rs.getString("type"));
+                pointage.setNomPersonnel(rs.getString("nom"));
+                pointage.setPrenomPersonnel(rs.getString("prenom"));
+                pointage.setStatut(rs.getString("statut"));
+                pointagesDuJour.add(pointage);
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pointagesDuJour;
     }
 
     @Override

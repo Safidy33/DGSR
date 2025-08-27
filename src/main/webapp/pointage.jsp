@@ -1,28 +1,25 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.LinkedHashMap" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="models.Pointage" %>
 
-
 <%
-    String adminName = "Admin"; // valeur par défaut
+    String adminName = "Admin";
     if (session != null && session.getAttribute("email") != null) {
         adminName = (String) session.getAttribute("email");
     }
 
-    // Récupération des attributs envoyés par le servlet
-    int presentCount = (request.getAttribute("presentCount") != null) ? (int) request.getAttribute("presentCount") : 0;
-    int absentCount = (request.getAttribute("absentCount") != null) ? (int) request.getAttribute("absentCount") : 0;
-    int totalPersonnel = (request.getAttribute("totalPersonnel") != null) ? (int) request.getAttribute("totalPersonnel") : 0;
+    // Récupération des pointages du jour
+    List<Pointage> pointagesDuJour = (List<Pointage>) request.getAttribute("pointagesDuJour");
 %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard Système de Gestion de Pointage</title>
+  <title>Pointage - Système de Gestion de Pointage</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     ::-webkit-scrollbar { width: 8px; }
@@ -53,40 +50,6 @@
       display: inline-block;
     }
     .scrollable-y { max-height: 400px; overflow-y: auto; }
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(33%) sepia(88%) saturate(538%) hue-rotate(355deg) brightness(89%) contrast(88%);
-      cursor: pointer;
-    }
-    .stat-card {
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      padding: 1.5rem;
-      text-align: center;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-    .stat-icon {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 0.75rem;
-    }
-    .present-icon {
-      background: linear-gradient(135deg, #10b981, #059669);
-    }
-    .absent-icon {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-    .total-icon {
-      background: linear-gradient(135deg, #6b7280, #4b5563);
-    }
   </style>
 </head>
 <body class="bg-white font-sans text-gray-800 min-h-screen flex flex-col">
@@ -120,15 +83,17 @@
   </header>
 
   <div class="flex flex-1 min-h-0">
-	
-	<jsp:include page="Menu_rapide.jsp" />
+    
+    <jsp:include page="Menu_rapide.jsp">
+        <jsp:param name="currentPage" value="pointage" />
+    </jsp:include>
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto p-6">
       <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
-        <a href="PointageServlet" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Tableau de Bord</a>
+        <a href="PointageServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Tableau de Bord</a>
         <a href="gerer-personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
-        <a href="PointageServlet?action=pointage" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Pointage</a>
+        <a href="PointageServlet?action=pointage" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Pointage</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Rapport</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
       </nav>
@@ -137,10 +102,10 @@
       <section class="max-w-6xl mx-auto mb-16">
         <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
           
-          <!-- Section tableau de gauche -->
+          <!-- ✅ Tableau des pointages du jour -->
           <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
             <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
-              Pointages récents
+              Liste de Pointages du jour
             </div>
 
             <table class="w-full text-sm text-left text-gray-900 border-collapse mt-4">
@@ -154,7 +119,7 @@
               </thead>
               <tbody>
               <%
-                  List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
+                  List<Pointage> pointages = (List<Pointage>) request.getAttribute("pointagesDuJour");
                   if (pointages != null && !pointages.isEmpty()) {
                       Map<String, Map<String, String>> dernierParPersonnel = new LinkedHashMap<>();
 
@@ -199,7 +164,7 @@
               <%
                       }
               %>
-                <!-- Légende en bas du tableau -->
+                <!-- ✅ Légende -->
                 <tr>
                   <td colspan="4" class="pt-4">
                     <div class="flex items-center space-x-4 mt-2">
@@ -212,7 +177,7 @@
                   } else {
               %>
                 <tr>
-                  <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
+                  <td colspan="4" class="text-center py-4">Aucun pointage aujourd'hui.</td>
                 </tr>
               <%
                   }
@@ -221,56 +186,10 @@
             </table>
           </div>
 
-          <!-- Section statistiques à droite -->
-          <div class="space-y-6">
-            
-            <!-- Carte Personnel Présent -->
-            <div class="stat-card">
-              <div class="stat-icon present-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M16 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
-                  <circle cx="12.5" cy="7" r="4"/>
-                  <path d="M20 8v6M23 11h-6"/>
-                </svg>
-              </div>
-              <h3 class="text-sm font-medium text-gray-500 mb-1">PERSONNEL PRÉSENT</h3>
-              <p class="text-3xl font-bold text-gray-900"><%= presentCount %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
-              <a href="PointageServlet?action=voir_presents" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
-            </div>
-
-            <!-- Carte Personnel Absent -->
-            <div class="stat-card">
-              <div class="stat-icon absent-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M16 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/>
-                  <circle cx="12.5" cy="7" r="4"/>
-                  <path d="M18 8l5 5M23 8l-5 5"/>
-                </svg>
-              </div>
-              <h3 class="text-sm font-medium text-gray-500 mb-1">PERSONNEL ABSENT</h3>
-              <p class="text-3xl font-bold text-gray-900"><%= absentCount %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
-              <a href="#" class="inline-block mt-3 text-blue-500 text-sm hover:underline">Voir liste</a>
-            </div>
-
-            <!-- Carte Total Personnel -->
-            <div class="stat-card">
-              <div class="stat-icon total-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 010 7.75"/>
-                </svg>
-              </div>
-              <h3 class="text-sm font-medium text-gray-500 mb-1">TOTAL PERSONNEL</h3>
-              <p class="text-3xl font-bold text-gray-900"><%= totalPersonnel %> <span class="text-sm font-normal text-gray-500">personnes</span></p>
-            </div>
-
-          </div>
-
         </div>
       </section>
-      
+
+          
     </main>
   </div>
 
