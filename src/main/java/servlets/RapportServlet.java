@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import models.Pointage;
 import models.Personnel;
 
@@ -20,7 +22,7 @@ public class RapportServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
         String action = request.getParameter("action");
@@ -28,25 +30,27 @@ public class RapportServlet extends HttpServlet {
         if ("generer_rapport".equals(action)) {
             // Récupérer les paramètres de filtrage
             String dateDebut = request.getParameter("date_debut");
-            String dateFin = request.getParameter("date_fin");
             String personnelId = request.getParameter("personnel_id");
             String departement = request.getParameter("departement");
             String periode = request.getParameter("periode");
-            
-            // Générer le rapport avec les filtres
-            List<Pointage> pointagesFiltres = getPointagesFiltres(dateDebut, dateFin, personnelId, departement, periode);
+
+            // Générer le rapport avec les filtres (ignorer dateFin)
+            List<Pointage> pointagesFiltres = getPointagesFiltres(dateDebut, null, personnelId, departement, periode);
             List<Personnel> tousPersonnels = getAllPersonnel();
             List<String> tousDepartements = getAllDepartements();
-            
+
             // Calculer les statistiques
             Map<String, Object> statistiques = calculerStatistiques(pointagesFiltres);
-            
+
+            // Obtenir les statuts des personnels par département en fonction de la dateDebut
+            Map<String, List<Map<String, Object>>> statutsPersonnels = getStatutsPersonnelsParDepartement(dateDebut);
+
             request.setAttribute("pointages", pointagesFiltres);
             request.setAttribute("tousPersonnels", tousPersonnels);
             request.setAttribute("tousDepartements", tousDepartements);
             request.setAttribute("statistiques", statistiques);
+            request.setAttribute("statutsPersonnels", statutsPersonnels);
             request.setAttribute("dateDebut", dateDebut);
-            request.setAttribute("dateFin", dateFin);
             request.setAttribute("personnelId", personnelId);
             request.setAttribute("departement", departement);
             request.setAttribute("periode", periode);
@@ -73,7 +77,7 @@ public class RapportServlet extends HttpServlet {
                 "JOIN personnel pe ON p.personnel_id = pe.id " +
                 "WHERE 1=1"
             );
-            
+
             // Appliquer les filtres
             if (dateDebut != null && !dateDebut.isEmpty()) {
                 sql.append(" AND DATE(p.date_pointage) >= ?");
@@ -87,7 +91,7 @@ public class RapportServlet extends HttpServlet {
             if (departement != null && !departement.isEmpty() && !"tous".equals(departement)) {
                 sql.append(" AND pe.departement = ?");
             }
-            
+
             // Appliquer la période prédéfinie
             if (periode != null && !periode.isEmpty()) {
                 switch (periode) {
@@ -102,12 +106,12 @@ public class RapportServlet extends HttpServlet {
                         break;
                 }
             }
-            
+
             sql.append(" ORDER BY p.date_pointage DESC");
-            
+
             PreparedStatement ps = conn.prepareStatement(sql.toString());
             int paramIndex = 1;
-            
+
             if (dateDebut != null && !dateDebut.isEmpty()) {
                 ps.setString(paramIndex++, dateDebut);
             }
@@ -120,7 +124,7 @@ public class RapportServlet extends HttpServlet {
             if (departement != null && !departement.isEmpty() && !"tous".equals(departement)) {
                 ps.setString(paramIndex++, departement);
             }
-            
+
             ResultSet rs = ps.executeQuery();
             
             while (rs.next()) {
@@ -130,6 +134,7 @@ public class RapportServlet extends HttpServlet {
                 pointage.setNomPersonnel(rs.getString("nom"));
                 pointage.setPrenomPersonnel(rs.getString("prenom"));
                 pointage.setStatut(rs.getString("statut"));
+                pointage.setDepartement(rs.getString("departement"));
                 pointages.add(pointage);
             }
             
@@ -145,6 +150,7 @@ public class RapportServlet extends HttpServlet {
 
     private List<Personnel> getAllPersonnel() {
         List<Personnel> personnels = new ArrayList<>();
+        
         try (Connection conn = Database.getConnection()) {
             String sql = "SELECT id, nom, prenom, numero_employe, departement, email FROM personnel ORDER BY nom, prenom";
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -163,14 +169,17 @@ public class RapportServlet extends HttpServlet {
             
             rs.close();
             ps.close();
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
         return personnels;
     }
 
     private List<String> getAllDepartements() {
         List<String> departements = new ArrayList<>();
+        
         try (Connection conn = Database.getConnection()) {
             String sql = "SELECT DISTINCT departement FROM personnel WHERE departement IS NOT NULL ORDER BY departement";
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -182,9 +191,11 @@ public class RapportServlet extends HttpServlet {
             
             rs.close();
             ps.close();
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
         return departements;
     }
 
@@ -219,8 +230,82 @@ public class RapportServlet extends HttpServlet {
         return stats;
     }
 
+    // Méthode corrigée pour obtenir les statuts des personnels par département
+    private Map<String, List<Map<String, Object>>> getStatutsPersonnelsParDepartement(String dateStr) {
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        
+        try (Connection conn = Database.getConnection()) {
+            // Récupérer tous les personnels avec leurs départements
+            String sql = "SELECT id, nom, prenom, numero_employe, departement FROM personnel ORDER BY departement, nom, prenom";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            
+            // Convertir la date sélectionnée en Date
+            java.util.Date selectedDate = null;
+            if (dateStr != null && !dateStr.isEmpty()) {
+                try {
+                    selectedDate = java.sql.Date.valueOf(dateStr);
+                } catch (IllegalArgumentException e) {
+                    selectedDate = null;
+                }
+            }
+            
+            while (rs.next()) {
+                int personnelId = rs.getInt("id");
+                String nom = rs.getString("nom");
+                String prenom = rs.getString("prenom");
+                String matricule = rs.getString("numero_employe");
+                String departement = rs.getString("departement");
+                
+                if (departement == null) departement = "Non spécifié";
+                
+                // Déterminer le statut du personnel pour la date sélectionnée
+                String statut = "Absent";
+                String remarques = "";
+                
+                // Si une date est sélectionnée, vérifier les pointages pour cette date spécifique
+                if (selectedDate != null) {
+                    // Requête pour vérifier s'il y a une entrée pour ce personnel à la date sélectionnée
+                    String sqlPointage = "SELECT COUNT(*) FROM pointage WHERE personnel_id = ? AND DATE(date_pointage) = ? AND type = 'entree'";
+                    PreparedStatement psPointage = conn.prepareStatement(sqlPointage);
+                    psPointage.setInt(1, personnelId);
+                    psPointage.setDate(2, new java.sql.Date(selectedDate.getTime()));
+                    
+                    ResultSet rsPointage = psPointage.executeQuery();
+                    if (rsPointage.next() && rsPointage.getInt(1) > 0) {
+                        statut = "Présent";
+                    }
+                    
+                    rsPointage.close();
+                    psPointage.close();
+                }
+                
+                Map<String, Object> personnelInfo = new HashMap<>();
+                personnelInfo.put("id", personnelId);
+                personnelInfo.put("nom", nom);
+                personnelInfo.put("prenom", prenom);
+                personnelInfo.put("matricule", matricule);
+                personnelInfo.put("statut", statut);
+                personnelInfo.put("remarques", remarques);
+                
+                if (!result.containsKey(departement)) {
+                    result.put(departement, new ArrayList<>());
+                }
+                result.get(departement).add(personnelInfo);
+            }
+            
+            rs.close();
+            ps.close();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return result;
+    }
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         doGet(request, response);
     }

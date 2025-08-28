@@ -1,4 +1,4 @@
-    package models; // Ou servlets, selon votre organisation
+package models; // Ou servlets, selon votre organisation
 
     import java.sql.Timestamp;
 
@@ -8,6 +8,7 @@
         private String nomPersonnel;
         private String prenomPersonnel;
         private String statut;
+        private String departement;
 
         // Getters et Setters
         public Timestamp getDatePointage() {
@@ -48,6 +49,14 @@
 
         public void setStatut(String statut) {
             this.statut = statut;
+        }
+
+        public String getDepartement() {
+            return departement;
+        }
+
+        public void setDepartement(String departement) {
+            this.departement = departement;
         }
 
     }
