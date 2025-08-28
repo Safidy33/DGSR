@@ -151,7 +151,7 @@ public class PointageServlet extends HttpServlet {
                          "WHERE p.id NOT IN ( " +
                          "   SELECT DISTINCT personnel_id FROM pointage WHERE DATE(date_pointage) = CURRENT_DATE " +
                          ") " +
-                         "ORDER BY p.nom, p.prenom";
+                         "ORDER by p.nom, p.prenom";
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -173,7 +173,6 @@ public class PointageServlet extends HttpServlet {
         return personnelsAbsents;
     }
 
-    // ✅ Pointages du jour
     private List<Pointage> getPointagesDuJour() {
         List<Pointage> pointagesDuJour = new ArrayList<>();
         try (Connection conn = Database.getConnection()) {
