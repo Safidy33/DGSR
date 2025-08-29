@@ -94,9 +94,9 @@
                   <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="px-6 py-4 font-medium"><%= h.getNomComplet() %></td>
                     <td class="px-6 py-4"><%= h.getDateTravail() %></td>
-                    <td class="px-6 py-4"><%= h.getHeuresJour() %> h</td>
-                    <td class="px-6 py-4"><%= h.getHeuresSemaine() %> h</td>
-                    <td class="px-6 py-4"><%= h.getHeuresMois() %> h</td>
+                    <td class="px-6 py-4"><%= h.getHeuresJour() %> </td>
+                    <td class="px-6 py-4"><%= h.getHeuresSemaine() %> </td>
+                    <td class="px-6 py-4"><%= h.getHeuresMois() %> </td>
                   </tr>
                 <% } } else { %>
                   <tr><td colspan="5" class="text-center py-4 text-gray-500">Aucune donnée disponible</td></tr>
