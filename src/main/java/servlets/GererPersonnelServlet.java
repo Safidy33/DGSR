@@ -102,7 +102,7 @@ public class GererPersonnelServlet extends HttpServlet {
         );
 
         if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            // Recherche nom, prénom, email, numero_employe ou nom complet
+            // Recherche nom, prénom, email, numéro de téléphone ou nom complet
             sql.append(" AND (nom LIKE ? OR prenom LIKE ? OR Email LIKE ? OR numero_employe LIKE ? OR CONCAT(nom,' ',prenom) LIKE ?)");
         }
 
@@ -149,23 +149,38 @@ public class GererPersonnelServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Ensure UTF-8 encoding for proper display of accented characters
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
 
         String action = request.getParameter("action");
 
         try {
             switch (action) {
-                case "add": addPersonnel(request); break;
-                case "update": updatePersonnel(request); break;
-                case "delete": deletePersonnel(request); break;
+                case "add":
+                    addPersonnel(request);
+                    response.sendRedirect("gerer-personnel?success=Personnel ajouté avec succès");
+                    return;
+                case "update":
+                    updatePersonnel(request);
+                    response.sendRedirect("gerer-personnel?success=Personnel modifié avec succès");
+                    return;
+                case "delete":
+                    deletePersonnel(request);
+                    response.sendRedirect("gerer-personnel?success=Personnel supprimé avec succès");
+                    return;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Erreur lors de l'opération : " + e.getMessage());
+            response.sendRedirect("gerer-personnel?error=Erreur lors de l'opération : " + e.getMessage());
+            return;
         }
 
-        doGet(request, response);
+        response.sendRedirect("gerer-personnel");
     }
 
     private void addPersonnel(HttpServletRequest request) throws Exception {

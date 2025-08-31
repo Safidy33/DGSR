@@ -254,7 +254,7 @@ public class RapportServlet extends HttpServlet {
                 int personnelId = rs.getInt("id");
                 String nom = rs.getString("nom");
                 String prenom = rs.getString("prenom");
-                String matricule = rs.getString("numero_employe");
+                String numeroTelephone = rs.getString("numero_employe");
                 String departement = rs.getString("departement");
                 
                 if (departement == null) departement = "Non spécifié";
@@ -284,7 +284,7 @@ public class RapportServlet extends HttpServlet {
                 personnelInfo.put("id", personnelId);
                 personnelInfo.put("nom", nom);
                 personnelInfo.put("prenom", prenom);
-                personnelInfo.put("matricule", matricule);
+                personnelInfo.put("matricule", numeroTelephone);
                 personnelInfo.put("statut", statut);
                 personnelInfo.put("remarques", remarques);
                 

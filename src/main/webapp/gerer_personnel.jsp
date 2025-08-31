@@ -90,7 +90,7 @@
     <main class="flex-1 overflow-auto p-6">
       <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
         <a href="PointageServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Tableau de Bord</a>
-        <a href="gerer_personnel.jsp" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Gérer Personnel</a>
+        <a href="gerer-personnel" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Gérer Personnel</a>
         <a href="PointageServlet?action=pointage" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Pointage</a>
         <a href="RapportServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Rapport</a>
         <a href="#" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
@@ -103,6 +103,40 @@
           <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Gestion du Personnel</h1>
           </div>
+
+          <!-- Messages de notification -->
+          <% String successMessage = request.getParameter("success"); %>
+          <% String errorMessage = request.getParameter("error"); %>
+          <% if (successMessage != null && !successMessage.isEmpty()) { %>
+            <div id="success-alert" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span><%= successMessage %></span>
+              </div>
+              <button onclick="closeAlert('success-alert')" class="text-green-700 hover:text-green-900">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
+          <% } %>
+          <% if (errorMessage != null && !errorMessage.isEmpty()) { %>
+            <div id="error-alert" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>
+                <span><%= errorMessage %></span>
+              </div>
+              <button onclick="closeAlert('error-alert')" class="text-red-700 hover:text-red-900">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
+          <% } %>
 
           <!-- Barre de recherche -->
           <form method="get" action="gerer-personnel" class="flex flex-col md:flex-row gap-4 mb-6 w-full">
@@ -185,6 +219,21 @@
     btnToggleSidebar.addEventListener('click', () => {
       sidebar.classList.toggle('-translate-x-full');
     });
+
+    function closeAlert(alertId) {
+      const alert = document.getElementById(alertId);
+      if (alert) {
+        alert.style.display = 'none';
+      }
+    }
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+      const successAlert = document.getElementById('success-alert');
+      const errorAlert = document.getElementById('error-alert');
+      if (successAlert) successAlert.style.display = 'none';
+      if (errorAlert) errorAlert.style.display = 'none';
+    }, 5000);
   </script>
 
 </body>
