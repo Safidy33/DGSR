@@ -44,78 +44,74 @@ public class HeureDeTravailServlet extends HttpServlet {
 
         List<HeureDeTravail> heuresTravail = new ArrayList<>();
 
-        // ✅ SQL corrigé : formatage heures + minutes (lundi à vendredi)
-        String sql = """
-SELECT 
-    per.nom,
-    per.prenom,
-    ent.personnel_id,
-    DATE(ent.date_pointage) AS jour,
-
-    -- Heures jour
-    CONCAT(
-       FLOOR(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END) / 60), 'h ',
-       LPAD(MOD(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END), 60), 2, '0'), 'min'
-    ) AS heures_jour,
-
-    -- Heures semaine
-    CONCAT(
-       FLOOR(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-            AND YEARWEEK(ent.date_pointage, 1) = YEARWEEK(CURDATE(), 1)
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END) / 60), 'h ',
-       LPAD(MOD(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-            AND YEARWEEK(ent.date_pointage, 1) = YEARWEEK(CURDATE(), 1)
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END), 60), 2, '0'), 'min'
-    ) AS heures_semaine,
-
-    -- Heures mois
-    CONCAT(
-       FLOOR(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-            AND YEAR(ent.date_pointage) = YEAR(CURDATE())
-            AND MONTH(ent.date_pointage) = MONTH(CURDATE())
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END) / 60), 'h ',
-       LPAD(MOD(SUM(CASE 
-           WHEN DAYOFWEEK(ent.date_pointage) BETWEEN 2 AND 6
-            AND YEAR(ent.date_pointage) = YEAR(CURDATE())
-            AND MONTH(ent.date_pointage) = MONTH(CURDATE())
-           THEN TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)
-           ELSE 0 END), 60), 2, '0'), 'min'
-    ) AS heures_mois
-
-FROM pointage ent
-LEFT JOIN pointage sor 
-  ON sor.personnel_id = ent.personnel_id
- AND sor.type = 'sortie'
- AND ent.type = 'entree'
- AND DATE(ent.date_pointage) = DATE(sor.date_pointage)
-JOIN personnel per ON per.id = ent.personnel_id
-GROUP BY per.id, per.nom, per.prenom, ent.personnel_id, DATE(ent.date_pointage)
-ORDER BY per.nom, per.prenom, jour;
+        // Requête principale : heures journalières
+        String sqlJour = """
+            SELECT per.id, per.nom, per.prenom, DATE(ent.date_pointage) AS jour,
+                   CONCAT(FLOOR(SUM(TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)) / 60), 'h ',
+                          LPAD(MOD(SUM(TIMESTAMPDIFF(MINUTE, ent.date_pointage, sor.date_pointage)), 60), 2, '0'), 'min') AS heures_jour
+            FROM pointage ent
+            JOIN pointage sor ON sor.personnel_id = ent.personnel_id
+                             AND sor.type = 'sortie'
+                             AND ent.type = 'entree'
+                             AND DATE(ent.date_pointage) = DATE(sor.date_pointage)
+            JOIN personnel per ON per.id = ent.personnel_id
+            GROUP BY per.id, per.nom, per.prenom, DATE(ent.date_pointage)
+            ORDER BY per.nom, per.prenom, jour;
         """;
 
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmtJour = conn.prepareStatement(sqlJour)) {
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = stmtJour.executeQuery();
             while (rs.next()) {
+                int personnelId = rs.getInt("id");
                 String nomComplet = rs.getString("nom") + " " + rs.getString("prenom");
                 Date dateTravail = rs.getDate("jour");
                 String heuresJour = rs.getString("heures_jour");
-                String heuresSemaine = rs.getString("heures_semaine");
-                String heuresMois = rs.getString("heures_mois");
 
+                // ✅ Calcul heures semaine
+                String sqlSemaine = """
+                    SELECT CONCAT(FLOOR(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)) / 60), 'h ',
+                                  LPAD(MOD(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)), 60), 2, '0'), 'min') AS total
+                    FROM pointage e
+                    JOIN pointage s ON s.personnel_id = e.personnel_id
+                                    AND s.type = 'sortie'
+                                    AND e.type = 'entree'
+                                    AND DATE(e.date_pointage) = DATE(s.date_pointage)
+                    WHERE e.personnel_id = ?
+                      AND YEARWEEK(e.date_pointage, 1) = YEARWEEK(?, 1);
+                """;
+                PreparedStatement stmtSemaine = conn.prepareStatement(sqlSemaine);
+                stmtSemaine.setInt(1, personnelId);
+                stmtSemaine.setDate(2, dateTravail);
+                ResultSet rsSemaine = stmtSemaine.executeQuery();
+                String heuresSemaine = rsSemaine.next() ? rsSemaine.getString("total") : "0h00min";
+                rsSemaine.close();
+                stmtSemaine.close();
+
+                // ✅ Calcul heures mois
+                String sqlMois = """
+                    SELECT CONCAT(FLOOR(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)) / 60), 'h ',
+                                  LPAD(MOD(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)), 60), 2, '0'), 'min') AS total
+                    FROM pointage e
+                    JOIN pointage s ON s.personnel_id = e.personnel_id
+                                    AND s.type = 'sortie'
+                                    AND e.type = 'entree'
+                                    AND DATE(e.date_pointage) = DATE(s.date_pointage)
+                    WHERE e.personnel_id = ?
+                      AND YEAR(e.date_pointage) = YEAR(?)
+                      AND MONTH(e.date_pointage) = MONTH(?);
+                """;
+                PreparedStatement stmtMois = conn.prepareStatement(sqlMois);
+                stmtMois.setInt(1, personnelId);
+                stmtMois.setDate(2, dateTravail);
+                stmtMois.setDate(3, dateTravail);
+                ResultSet rsMois = stmtMois.executeQuery();
+                String heuresMois = rsMois.next() ? rsMois.getString("total") : "0h00min";
+                rsMois.close();
+                stmtMois.close();
+
+                // Ajout dans la liste
                 heuresTravail.add(new HeureDeTravail(nomComplet, dateTravail, heuresJour, heuresSemaine, heuresMois));
             }
 
