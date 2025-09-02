@@ -1,16 +1,14 @@
-# Migration vers Jakarta EE - Plan d'Exécution
+# TODO - Création de la page statistique
 
-## Phase 1: Mise à jour de HeureDeTravailServlet ✅ COMPLÉTÉ
-- [x] Remplacer les imports javax.servlet.* par jakarta.servlet.*
-- [x] Ajouter l'annotation @WebServlet
-- [x] Mettre à jour les signatures de méthodes
+## Étapes à suivre :
+- [x] Créer le servlet StatistiqueServlet.java pour gérer la logique des statistiques
+- [x] Créer la page JSP statistique.jsp pour afficher les statistiques
+- [ ] Mettre à jour web.xml pour mapper le servlet /StatistiqueServlet
+- [x] Ajouter un lien vers la page statistique dans le menu (optionnel)
+- [ ] Tester la page statistique en accédant à /StatistiqueServlet
 
-## Phase 2: Nettoyage de web.xml ✅ COMPLÉTÉ
-- [x] Supprimer les mappings de servlets déjà annotées
-- [x] Vérifier si le filtre peut être géré par annotation
-- [x] Garder les configurations essentielles
-
-## Phase 3: Vérification finale ✅ COMPLÉTÉ
-- [x] Tester l'application (WAR file créé avec succès)
-- [x] Vérifier la cohérence des imports (tous les servlets utilisent jakarta.servlet.*)
-- [x] S'assurer que toutes les fonctionnalités marchent (compilation réussie)
+## Détails :
+- Le servlet récupérera les données de pointage et de personnel depuis la base de données
+- Il calculera les statistiques (total pointages, entrées/sorties, par personnel, par département)
+- La page JSP affichera ces statistiques de manière claire et organisée
+- Utiliser les méthodes similaires à RapportServlet pour la récupération des données

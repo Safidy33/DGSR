@@ -231,21 +231,21 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-6">
                             <div class="form-group relative">
                                 <label for="numeroEmploye" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Numéro Employé <span class="text-red-500">*</span>
+                                    Numéro de Téléphone <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
                                     <input type="text" id="numeroEmploye" name="numeroEmploye" required
                                            class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-12"
-                                           placeholder="Ex: EMP001"
+                                           placeholder="Ex: 034 12 345 67"
                                            value="<%= personnel.getNumeroEmploye() %>"
                                            data-original="<%= personnel.getNumeroEmploye() %>"
-                                           pattern="[A-Z]{3}[0-9]{3,6}"
-                                           title="Format: 3 lettres suivies de 3-6 chiffres (ex: EMP001)">
+                                           pattern="^\+?[0-9\s\-\(\)]{10,15}$"
+                                           title="Format: numéro de téléphone valide (ex: 034 12 345 67)">
                                     <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                     </svg>
                                 </div>
-                                <small class="text-gray-500 text-xs mt-1 block">Numéro unique d'identification</small>
+                                <small class="text-gray-500 text-xs mt-1 block">Format: 0XX XX XXX XX (Madagascar)</small>
                             </div>
                             
                             <div class="form-group relative">
@@ -474,8 +474,8 @@
                 
                 const fieldLabels = {
                     'nom': 'Nom',
-                    'prenom': 'Prénom', 
-                    'numeroEmploye': 'Numéro Employé',
+                    'prenom': 'Prénom',
+                    'numeroEmploye': 'Numéro de Téléphone',
                     'departement': 'Département',
                     'email': 'Email',
                     'qrCode': 'QR Code'
@@ -614,12 +614,12 @@
                 document.getElementById('email').classList.add('field-invalid');
             }
             
-            // Validation numéro employé
+            // Validation numéro de téléphone
             const numeroEmploye = document.getElementById('numeroEmploye').value.trim();
-            const numeroPattern = /^[A-Z]{3}[0-9]{3,6}$/;
+            const numeroPattern = /^(\+261|0)[0-9]{9}$/;
             if (numeroEmploye && !numeroPattern.test(numeroEmploye)) {
                 isValid = false;
-                errors.push('Le numéro employé doit suivre le format: 3 lettres + 3-6 chiffres (ex: EMP001)');
+                errors.push('Le numéro de téléphone doit suivre le format: 0341234567 ou +261341234567');
                 document.getElementById('numeroEmploye').classList.add('field-invalid');
             }
             
@@ -631,7 +631,17 @@
             
             // Confirmation des modifications importantes
             if (modifiedFields.has('numeroEmploye') || modifiedFields.has('email')) {
-                if (!confirm('Vous modifiez des informations critiques (numéro employé ou email). Êtes-vous sûr de vouloir continuer ?')) {
+                let message = 'Vous modifiez des informations critiques ';
+                if (modifiedFields.has('numeroEmploye') && modifiedFields.has('email')) {
+                    message += '(numéro de téléphone et email)';
+                } else if (modifiedFields.has('numeroEmploye')) {
+                    message += '(numéro de téléphone)';
+                } else {
+                    message += '(email)';
+                }
+                message += '. Le numéro de téléphone doit suivre le format: 0341234567 ou +261341234567. Êtes-vous sûr de vouloir continuer ?';
+
+                if (!confirm(message)) {
                     e.preventDefault();
                     return;
                 }
@@ -718,12 +728,11 @@
             document.getElementById('validationMessages').classList.add('hidden');
         }
 
-        // 11. Validation en temps réel du numéro employé
+        // 11. Validation en temps réel du numéro de téléphone
         document.getElementById('numeroEmploye').addEventListener('input', function(e) {
-            const value = e.target.value.toUpperCase();
-            e.target.value = value;
-            
-            const pattern = /^[A-Z]{3}[0-9]{3,6}$/;
+            const value = e.target.value.trim();
+
+            const pattern = /^(\+261|0)[0-9]{9}$/;
             if (value && !pattern.test(value)) {
                 e.target.classList.add('field-invalid');
                 e.target.classList.remove('field-valid');

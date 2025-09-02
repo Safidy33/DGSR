@@ -325,7 +325,7 @@
                     <div class="flex items-center space-x-3">
                       <input type="text" id="qrCode" name="qrCode"
                              class="form-input flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                             placeholder="Sera généré automatiquement si laissé vide">
+                      >
                       <button type="button" id="generateQR"
                               class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
