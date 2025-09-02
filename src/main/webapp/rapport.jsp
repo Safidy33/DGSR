@@ -445,7 +445,7 @@ if (dateDebut == null) dateDebut = "";
 
 <body class="bg-white font-sans text-gray-800 min-h-screen flex flex-col">
     <!-- HEADER -->
-    <header class="bg-blue-900 text-white flex items-center justify-between px-6 py-3 select-none">
+    <header class="bg-blue-900 text-white flex items-center justify-between px-6 py-3 select-none no-print">
         <div class="flex items-center space-x-4">
             <button id="btn-toggle-sidebar" aria-label="Toggle menu" class="md:hidden focus:outline-none">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

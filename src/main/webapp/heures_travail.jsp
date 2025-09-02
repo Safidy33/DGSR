@@ -47,12 +47,83 @@
     .tab-btn:hover {
       transform: translateY(-2px);
     }
+    .btn-deconnexion {
+      background: linear-gradient(90deg, #ff3e00, #bf2f00);
+      transition: background 0.3s ease;
+    }
+    .btn-deconnexion:hover {
+      background: linear-gradient(90deg, #bf2f00, #ff3e00);
+    }
+    .nav-item.active {
+      background-color: #3b82f6;
+      color: white !important;
+      font-weight: 600;
+      border-radius: 0.5rem;
+    }
+
+    /* Style professionnel pour le titre principal */
+    .main-title {
+      color: #1f2937;
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      letter-spacing: -0.5px;
+    }
+
+    .main-title::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: #1e40af;
+      border-radius: 2px;
+    }
+
+    .title-icon {
+      background: #1e40af;
+      color: white;
+      padding: 0.625rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+      transition: all 0.2s ease;
+    }
+
+    .title-icon:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .main-title {
+        font-size: 1.875rem;
+      }
+      .main-title::after {
+        width: 40px;
+        height: 2px;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col">
 
-<header class="bg-blue-900 text-white flex items-center justify-between px-6 py-3">
+<header class="bg-blue-900 text-white flex items-center justify-between px-6 py-3 select-none">
   <div class="flex items-center space-x-4">
+    <button id="btn-toggle-sidebar" aria-label="Toggle menu" class="md:hidden focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="w-8 h-8 text-white" viewBox="0 0 24 24">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+
     <img src="assets/img/logo_dgsr.png" alt="Logo DGS" class="w-14 h-14 object-cover"/>
     <div class="leading-tight font-semibold">
       <div>Système de Gestion</div>
@@ -61,7 +132,7 @@
   </div>
   <div class="flex items-center space-x-4">
     <span class="font-semibold"><%= adminName %></span>
-    <a href="LogoutServlet" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg shadow text-white font-bold">
+    <a href="LogoutServlet" class="btn-deconnexion text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:shadow-2xl transition">
       Déconnexion
     </a>
   </div>
@@ -73,10 +144,20 @@
   </jsp:include>
 
   <main class="flex-1 overflow-auto p-6">
-    <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-      <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
+    <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
+      <a href="PointageServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer">Tableau de Bord</a>
+      <a href="gerer-personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
+      <a href="PointageServlet?action=pointage" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Pointage</a>
+      <a href="RapportServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Rapport</a>
+      <a href="HeureDeTravailServlet" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Heures de Travails</a>
+    </nav>
+
+    <h2 class="main-title">
+      <div class="title-icon">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
       Heures de Travail
     </h2>
 
@@ -227,5 +308,14 @@
 
   </main>
 </div>
+
+<script>
+  const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+  const sidebar = document.getElementById('sidebar');
+  btnToggleSidebar.addEventListener('click', () => {
+    sidebar.classList.toggle('-translate-x-full');
+  });
+</script>
+
 </body>
 </html>

@@ -1,14 +1,7 @@
-# TODO - Création de la page statistique
+# TODO: Standardiser heures_travail.jsp
 
-## Étapes à suivre :
-- [x] Créer le servlet StatistiqueServlet.java pour gérer la logique des statistiques
-- [x] Créer la page JSP statistique.jsp pour afficher les statistiques
-- [ ] Mettre à jour web.xml pour mapper le servlet /StatistiqueServlet
-- [x] Ajouter un lien vers la page statistique dans le menu (optionnel)
-- [ ] Tester la page statistique en accédant à /StatistiqueServlet
-
-## Détails :
-- Le servlet récupérera les données de pointage et de personnel depuis la base de données
-- Il calculera les statistiques (total pointages, entrées/sorties, par personnel, par département)
-- La page JSP affichera ces statistiques de manière claire et organisée
-- Utiliser les méthodes similaires à RapportServlet pour la récupération des données
+- [ ] Mettre à jour l'en-tête pour ajouter le bouton de basculement mobile et la classe select-none
+- [ ] Changer le bouton de déconnexion pour utiliser la classe btn-deconnexion et ajouter le CSS personnalisé
+- [ ] Ajouter la barre de navigation horizontale dans le contenu principal
+- [ ] Ajouter le script JavaScript pour le basculement de la barre latérale
+- [ ] Tester la page

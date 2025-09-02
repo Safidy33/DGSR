@@ -73,6 +73,53 @@ Map<String, List<Map<String, Object>>> statutsPersonnels = (Map<String, List<Map
             border-radius: 9999px;
             font-weight: 500;
         }
+
+        /* Nouveau style pour le titre principal */
+        .main-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: -1px;
+        }
+
+        .main-title::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 2px;
+        }
+
+        .main-title::after {
+            content: '📊';
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            .main-title::after {
+                left: -50px;
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -115,7 +162,7 @@ Map<String, List<Map<String, Object>>> statutsPersonnels = (Map<String, List<Map
                 <a href="HeureDeTravailServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
             </nav>
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">📊 Statistiques du Système</h1>
+            <h1 class="main-title">Statistiques du Système</h1>
 
             <!-- Statistiques Globales -->
             <% if (statistiquesGlobales != null) { %>
