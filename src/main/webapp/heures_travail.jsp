@@ -168,11 +168,31 @@
                     <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-semibold"><%= h.getHeures() %></span>
                   </td>
                 </tr>
+<<<<<<< Updated upstream
               <% } } else { %>
                 <tr><td colspan="3" class="text-center py-8 text-gray-500">Aucune donnée disponible</td></tr>
               <% } %>
             </tbody>
           </table>
+=======
+              </thead>
+              <tbody>
+                <% if (heures != null && !heures.isEmpty()) {
+                     for (HeureDeTravail h : heures) { %>
+                  <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium"><%= h.getNomComplet() %></td>
+                    <td class="px-6 py-4"><%= h.getDateTravail() %></td>
+                    <td class="px-6 py-4"><%= h.getHeuresJour() %> </td>
+                    <td class="px-6 py-4"><%= h.getHeuresSemaine() %> </td>
+                    <td class="px-6 py-4"><%= h.getHeuresMois() %> </td>
+                  </tr>
+                <% } } else { %>
+                  <tr><td colspan="5" class="text-center py-4 text-gray-500">Aucune donnée disponible</td></tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+>>>>>>> Stashed changes
         </div>
       </div>
     </div>
