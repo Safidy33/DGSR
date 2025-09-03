@@ -61,6 +61,7 @@ public class StatistiqueServlet extends HttpServlet {
             String sql = "SELECT p.date_pointage, p.type, pe.nom, pe.prenom, p.statut, pe.departement " +
                          "FROM pointage p " +
                          "JOIN personnel pe ON p.personnel_id = pe.id " +
+                         "WHERE DATE(p.date_pointage) = CURRENT_DATE " +
                          "ORDER BY p.date_pointage DESC";
 
             PreparedStatement ps = conn.prepareStatement(sql);
