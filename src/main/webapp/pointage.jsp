@@ -105,20 +105,21 @@
   <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
 
     <!-- ✅ Tableau des pointages du jour -->
-    <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
+    <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4 ">
       <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
         Pointages du jour
       </div>
 
-      <table class="w-full text-sm text-left text-gray-900 border-collapse mt-4">
-        <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
-          <tr>
-            <th class="pl-3 py-2 font-semibold">Nom</th>
-            <th class="py-2 font-semibold text-center">Heure d'entrée</th>
-            <th class="py-2 font-semibold text-center">Heure de sortie</th>
-            <th class="pr-3 py-2 font-semibold text-center">Statut</th>
-          </tr>
-        </thead>
+<div class="flex justify-center">
+  <table class="max-w-4xl w-full text-sm text-left text-gray-900 border-collapse mt-4">
+    <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
+      <tr>
+        <th class="pl-3 py-2 font-semibold">Nom</th>
+        <th class="py-2 font-semibold text-center">Heure d'entrée</th>
+        <th class="py-2 font-semibold text-center">Heure de sortie</th>
+        <th class="pr-3 py-2 font-semibold text-center">Statut</th>
+      </tr>
+    </thead>
         <tbody>
         <%
             List<Pointage> pointages = (List<Pointage>) request.getAttribute("pointagesDuJour");
@@ -186,6 +187,7 @@
         %>
         </tbody>
       </table>
+      </div>
     </div>
 
   </div>
