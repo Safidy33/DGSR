@@ -125,7 +125,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-auto p-6" display="center" >
-      <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8">
+      <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8 mx-auto mx-justify">
         <a href="PointageServlet" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Tableau de Bord</a>
         <a href="gerer-personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
 
