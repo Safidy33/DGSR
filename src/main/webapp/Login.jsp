@@ -158,9 +158,17 @@
       <!-- Message d'erreur -->
       <%
           String error = request.getParameter("error");
-          if ("1".equals(error)) {
+          if ("invalid".equals(error)) {
       %>
           <div class="error-message">Email ou mot de passe incorrect ! ❌</div>
+      <%
+          } else if ("empty".equals(error)) {
+      %>
+          <div class="error-message">Veuillez remplir tous les champs !</div>
+      <%
+          } else if ("server".equals(error)) {
+      %>
+          <div class="error-message">Erreur serveur, veuillez réessayer plus tard.</div>
       <%
           }
       %>

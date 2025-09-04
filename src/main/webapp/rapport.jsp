@@ -37,6 +37,12 @@ if (dateDebut == null) dateDebut = "";
     .btn-deconnexion:hover {
       background: linear-gradient(90deg, #bf2f00, #ff3e00);
     }
+    .nav-item.active {
+      background-color: #3b82f6;
+      color: white !important;
+      font-weight: 600;
+      border-radius: 0.5rem;
+    }
 
     /* Styles généraux */
         .present {

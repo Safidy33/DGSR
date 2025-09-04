@@ -5,15 +5,21 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 
-@WebFilter({"/dashboard.jsp", "/canner.jsp"}) // protèges ces pages
+@WebFilter("*.jsp") // protèges ces pages
 public class AuthFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
+
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
+
+        String uri = req.getRequestURI();
+        if (uri.endsWith("Login.jsp")) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         HttpSession session = req.getSession(false);
 

@@ -49,19 +49,16 @@ public class LoginServlet extends HttpServlet {
                 if ("admin".equalsIgnoreCase(role)) {
                     // Redirection admin vers le servlet qui affiche le dashboard
                     response.sendRedirect(request.getContextPath() + "/PointageServlet");
-                } else {
-                    // Redirection utilisateur normal
-                    response.sendRedirect(request.getContextPath() + "/canner.jsp");
                 }
 
             } else {
                 // Identifiants incorrects
-                response.sendRedirect(request.getContextPath() + "/login.jsp?error=invalid");
+                response.sendRedirect(request.getContextPath() + "/Login.jsp?error=invalid");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/login.jsp?error=server");
+            response.sendRedirect(request.getContextPath() + "/Login.jsp?error=server");
         }
     }
 }
