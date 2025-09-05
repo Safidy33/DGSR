@@ -205,8 +205,8 @@
                 <tr>
                   <td colspan="4" class="pt-4">
                     <div class="flex items-center space-x-4 mt-2">
-                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En cours</span></div>
-                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>En interruption</span></div>
+                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En train de travailler</span></div>
+                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>Sortie</span></div>
                     </div>
                   </td>
                 </tr>
