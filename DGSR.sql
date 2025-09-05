@@ -144,7 +144,6 @@ CREATE TABLE `pointage` (
   `scanner_id` int DEFAULT NULL,
   `statut` enum('en train de travailler','Sortie') DEFAULT 'en train de travailler',
   `commentaire` text,
-  `localisation` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `personnel_id` (`personnel_id`),
   KEY `scanner_id` (`scanner_id`),
@@ -163,117 +162,6 @@ LOCK TABLES `pointage` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `rapport`
---
-
-DROP TABLE IF EXISTS `rapport`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rapport` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `contenu` text,
-  `date_generation` datetime DEFAULT CURRENT_TIMESTAMP,
-  `type_rapport` varchar(100) DEFAULT NULL,
-  `periode_debut` date DEFAULT NULL,
-  `periode_fin` date DEFAULT NULL,
-  `format_export` varchar(20) DEFAULT NULL,
-  `admin_id` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `admin_id` (`admin_id`),
-  CONSTRAINT `rapport_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `utilisateur` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rapport`
---
-
-LOCK TABLES `rapport` WRITE;
-/*!40000 ALTER TABLE `rapport` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rapport` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `rapport_absence`
---
-
-DROP TABLE IF EXISTS `rapport_absence`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rapport_absence` (
-  `rapport_id` int NOT NULL,
-  `absence_id` int NOT NULL,
-  PRIMARY KEY (`rapport_id`,`absence_id`),
-  KEY `absence_id` (`absence_id`),
-  CONSTRAINT `rapport_absence_ibfk_1` FOREIGN KEY (`rapport_id`) REFERENCES `rapport` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `rapport_absence_ibfk_2` FOREIGN KEY (`absence_id`) REFERENCES `absence` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rapport_absence`
---
-
-LOCK TABLES `rapport_absence` WRITE;
-/*!40000 ALTER TABLE `rapport_absence` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rapport_absence` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `rapport_heure`
---
-
-DROP TABLE IF EXISTS `rapport_heure`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rapport_heure` (
-  `rapport_id` int NOT NULL,
-  `heure_id` int NOT NULL,
-  PRIMARY KEY (`rapport_id`,`heure_id`),
-  KEY `heure_id` (`heure_id`),
-  CONSTRAINT `rapport_heure_ibfk_1` FOREIGN KEY (`rapport_id`) REFERENCES `rapport` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `rapport_heure_ibfk_2` FOREIGN KEY (`heure_id`) REFERENCES `heuredetravail` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rapport_heure`
---
-
-LOCK TABLES `rapport_heure` WRITE;
-/*!40000 ALTER TABLE `rapport_heure` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rapport_heure` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `rapport_pointage`
---
-
-DROP TABLE IF EXISTS `rapport_pointage`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rapport_pointage` (
-  `rapport_id` int NOT NULL,
-  `pointage_id` int NOT NULL,
-  PRIMARY KEY (`rapport_id`,`pointage_id`),
-  KEY `pointage_id` (`pointage_id`),
-  CONSTRAINT `rapport_pointage_ibfk_1` FOREIGN KEY (`rapport_id`) REFERENCES `rapport` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `rapport_pointage_ibfk_2` FOREIGN KEY (`pointage_id`) REFERENCES `pointage` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rapport_pointage`
---
-
-LOCK TABLES `rapport_pointage` WRITE;
-/*!40000 ALTER TABLE `rapport_pointage` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rapport_pointage` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `utilisateur`
---
 
 DROP TABLE IF EXISTS `utilisateur`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -286,6 +174,7 @@ CREATE TABLE `utilisateur` (
   `mot_de_passe` varchar(255) DEFAULT NULL,
   `role` enum('admin','scanner') NOT NULL,
   `date_creation` datetime DEFAULT CURRENT_TIMESTAMP,
+  `localisation` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;

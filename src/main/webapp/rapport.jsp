@@ -522,11 +522,14 @@ if (dateDebut == null) dateDebut = "";
             <div class="document-title">RAPPORT DE POINTAGE PAR DÉPARTEMENT</div>
             
             <!-- Informations de la date pour l'impression -->
-            <% if (dateDebut != null && !dateDebut.isEmpty()) { %>
-            <div class="print-only" style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 12px;">
-                Date du rapport : <%= dateDebut %>
-            </div>
-            <% } %>
+                <% if (dateDebut != null && !dateDebut.isEmpty()) { 
+                    java.text.SimpleDateFormat sdfHeure = new java.text.SimpleDateFormat("HH:mm:ss");
+                    String heureActuelle = sdfHeure.format(new java.util.Date());
+                %>
+                <div class="print-only" style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 12px;">
+                    Date du rapport : <%= dateDebut %> à <%= heureActuelle %>
+                </div>
+                <% } %>
         </div>
 
         <!-- Filtres -->
