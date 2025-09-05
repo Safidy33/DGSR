@@ -44,6 +44,13 @@ public class HeureDeTravailServlet extends HttpServlet {
         List<HeureDeTravail> heuresSemaine = new ArrayList<>();
         List<HeureDeTravail> heuresMois = new ArrayList<>();
 
+        String action = request.getParameter("action");  // filterSemaine ou filterMois
+        String weekParamSelected = request.getParameter("week");
+        String monthParamSelected = request.getParameter("month");
+
+        // Onglet actif par défaut
+        String activeTab = "jour";
+
         try (Connection conn = Database.getConnection()) {
             
             // ----------- HEURES PAR JOUR -----------
@@ -91,30 +98,36 @@ public class HeureDeTravailServlet extends HttpServlet {
                                 AND s.date_pointage > e.date_pointage
                 JOIN personnel per ON per.id = e.personnel_id
                 GROUP BY per.id, per.nom, per.prenom, annee, semaine_num
-                ORDER BY per.nom, per.prenom, annee DESC, semaine_num DESC;
+                HAVING 1=1
             """;
 
-            try (PreparedStatement stmtSemaine = conn.prepareStatement(sqlSemaine);
-                 ResultSet rsSemaine = stmtSemaine.executeQuery()) {
-                
-                while (rsSemaine.next()) {
-                    String nomComplet = rsSemaine.getString("nom") + " " + rsSemaine.getString("prenom");
-                    Date debutSemaine = rsSemaine.getDate("debut_semaine");
-                    Date finSemaine = rsSemaine.getDate("fin_semaine");
-                    String heures = rsSemaine.getString("heures_semaine");
-                    
-                    // Calculer le début et la fin de la semaine proprement
-                    LocalDate debut = debutSemaine.toLocalDate();
-                    LocalDate fin = finSemaine.toLocalDate();
-                    
-                    // Ajuster pour avoir lundi-dimanche
-                    LocalDate lundiSemaine = debut.with(DayOfWeek.MONDAY);
-                    LocalDate dimancheSemaine = debut.with(DayOfWeek.SUNDAY);
-                    
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    String periodeTexte = lundiSemaine.format(formatter) + " au " + dimancheSemaine.format(formatter);
-                    
-                    heuresSemaine.add(new HeureDeTravail(nomComplet + " (" + periodeTexte + ")", debutSemaine, heures));
+            if ("filterSemaine".equals(action) && weekParamSelected != null) {
+                sqlSemaine += " AND semaine_num = ? ";
+                activeTab = "semaine"; // rester sur l’onglet semaine
+            }
+            sqlSemaine += " ORDER BY per.nom, per.prenom, annee DESC, semaine_num DESC";
+
+            try (PreparedStatement stmtSemaine = conn.prepareStatement(sqlSemaine)) {
+                if ("filterSemaine".equals(action) && weekParamSelected != null) {
+                    stmtSemaine.setInt(1, Integer.parseInt(weekParamSelected));
+                }
+                try (ResultSet rsSemaine = stmtSemaine.executeQuery()) {
+                    while (rsSemaine.next()) {
+                        String nomComplet = rsSemaine.getString("nom") + " " + rsSemaine.getString("prenom");
+                        Date debutSemaine = rsSemaine.getDate("debut_semaine");
+                        Date finSemaine = rsSemaine.getDate("fin_semaine");
+                        String heures = rsSemaine.getString("heures_semaine");
+
+                        LocalDate debut = debutSemaine.toLocalDate();
+                        LocalDate lundi = debut.with(DayOfWeek.MONDAY);
+                        LocalDate dimanche = debut.with(DayOfWeek.SUNDAY);
+
+                        String periodeTexte = lundi.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) +
+                                              " au " +
+                                              dimanche.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+                        heuresSemaine.add(new HeureDeTravail(nomComplet + " (" + periodeTexte + ")", debutSemaine, heures));
+                    }
                 }
             }
 
@@ -133,25 +146,30 @@ public class HeureDeTravailServlet extends HttpServlet {
                                 AND s.date_pointage > e.date_pointage
                 JOIN personnel per ON per.id = e.personnel_id
                 GROUP BY per.id, per.nom, per.prenom, annee, mois_num
-                ORDER BY per.nom, per.prenom, annee DESC, mois_num DESC;
+                HAVING 1=1
             """;
 
-            try (PreparedStatement stmtMois = conn.prepareStatement(sqlMois);
-                 ResultSet rsMois = stmtMois.executeQuery()) {
-                
-                while (rsMois.next()) {
-                    String nomComplet = rsMois.getString("nom") + " " + rsMois.getString("prenom");
-                    int annee = rsMois.getInt("annee");
-                    int moisNum = rsMois.getInt("mois_num");
-                    String heures = rsMois.getString("heures_mois");
-                    
-                    // Convertir le numéro du mois en nom français
-                    String moisFrancais = convertirNumeroMoisEnFrancais(moisNum);
-                    
-                    // Créer une date pour le premier du mois pour l'affichage
-                    Date dateMois = Date.valueOf(LocalDate.of(annee, moisNum, 1));
-                    
-                    heuresMois.add(new HeureDeTravail(nomComplet, dateMois, heures));
+            if ("filterMois".equals(action) && monthParamSelected != null) {
+                sqlMois += " AND mois_num = ? ";
+                activeTab = "mois"; // rester sur l’onglet mois
+            }
+            sqlMois += " ORDER BY per.nom, per.prenom, annee DESC, mois_num DESC";
+
+            try (PreparedStatement stmtMois = conn.prepareStatement(sqlMois)) {
+                if ("filterMois".equals(action) && monthParamSelected != null) {
+                    stmtMois.setInt(1, Integer.parseInt(monthParamSelected));
+                }
+                try (ResultSet rsMois = stmtMois.executeQuery()) {
+                    while (rsMois.next()) {
+                        String nomComplet = rsMois.getString("nom") + " " + rsMois.getString("prenom");
+                        int annee = rsMois.getInt("annee");
+                        int moisNum = rsMois.getInt("mois_num");
+                        String heures = rsMois.getString("heures_mois");
+
+                        Date dateMois = Date.valueOf(LocalDate.of(annee, moisNum, 1));
+
+                        heuresMois.add(new HeureDeTravail(nomComplet + " (" + convertirNumeroMoisEnFrancais(moisNum) + ")", dateMois, heures));
+                    }
                 }
             }
 
@@ -159,11 +177,12 @@ public class HeureDeTravailServlet extends HttpServlet {
             e.printStackTrace();
         }
 
-        // Passer les listes séparées à la JSP
+        // Passer les listes + onglet actif à la JSP
         request.setAttribute("heuresJour", heuresJour);
         request.setAttribute("heuresSemaine", heuresSemaine);
         request.setAttribute("heuresMois", heuresMois);
-        
+        request.setAttribute("activeTab", activeTab);
+
         request.getRequestDispatcher("heures_travail.jsp").forward(request, response);
     }
     

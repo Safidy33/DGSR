@@ -223,28 +223,72 @@
       </div>
     </div>
 
-    <!-- Tableau Semaine -->
+    <!-- Onglet Semaine -->
     <div id="semaine" class="tab-content hidden">
       <div class="bg-white rounded-xl shadow-lg p-6">
         <h3 class="text-xl font-bold mb-6 text-gray-800 flex items-center">
           <div class="w-1 h-6 bg-green-500 rounded-full mr-3"></div>
           Heures par Semaine
         </h3>
+
+        <!-- Formulaire choix semaine -->
+        <form method="get" action="HeureDeTravailServlet" class="mb-6 flex items-center space-x-4">
+          <input type="hidden" name="action" value="filterSemaine">
+          <label for="weekSelect" class="font-semibold text-gray-700">Choisir une semaine :</label>
+          <select id="weekSelect" name="week"
+                  class="px-4 py-2 border rounded-lg shadow-sm focus:ring focus:ring-green-300">
+            <%
+              java.time.LocalDate now = java.time.LocalDate.now();
+              java.time.temporal.WeekFields wf = java.time.temporal.WeekFields.of(java.util.Locale.FRANCE);
+              int semaineCourante = now.get(wf.weekOfWeekBasedYear());
+              
+              // Récupérer la semaine sélectionnée depuis les paramètres
+              String weekParamSelected = request.getParameter("week");
+              int semaineSelectionnee = semaineCourante; // Par défaut
+              if (weekParamSelected != null && !weekParamSelected.trim().isEmpty()) {
+                try {
+                  semaineSelectionnee = Integer.parseInt(weekParamSelected);
+                } catch (NumberFormatException e) {
+                  semaineSelectionnee = semaineCourante;
+                }
+              }
+              
+              for (int i = 1; i <= 52; i++) {
+            %>
+              <option value="<%= i %>" <%= (i == semaineSelectionnee ? "selected" : "") %>>
+                Semaine <%= i %>
+              </option>
+            <% } %>
+          </select>
+          <button type="submit"
+                  class="px-5 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition">
+            Voir
+          </button>
+        </form>
+
+        <!-- Tableau des heures par semaine -->
         <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead>
               <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                 <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Nom Complet</th>
                 <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Période</th>
-                <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Total Heures</th>
+                <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Heures Travaillées</th>
               </tr>
             </thead>
             <tbody>
               <% if (heuresSemaine != null && !heuresSemaine.isEmpty()) {
-                   for (HeureDeTravail h : heuresSemaine) { %>
+                   for (HeureDeTravail h : heuresSemaine) { 
+                     String nomSeul = h.getNomComplet();
+                     String periodeTexte = "";
+                     if (nomSeul.contains("(")) {
+                       periodeTexte = nomSeul.substring(nomSeul.indexOf("(") + 1, nomSeul.indexOf(")"));
+                       nomSeul = nomSeul.substring(0, nomSeul.indexOf("(")).trim();
+                     }
+              %>
                 <tr class="border-b border-gray-100 hover:bg-green-50 transition-colors">
-                  <td class="px-6 py-4 font-medium text-gray-900"><%= h.getNomComplet() %></td>
-                  <td class="px-6 py-4 text-gray-600">Semaine du <%= (h.getDateTravail() != null ? sdf.format(h.getDateTravail()) : "") %></td>
+                  <td class="px-6 py-4 font-medium text-gray-900"><%= nomSeul %></td>
+                  <td class="px-6 py-4 text-gray-600"><%= periodeTexte %></td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-semibold"><%= h.getHeures() %></span>
                   </td>
@@ -258,41 +302,73 @@
       </div>
     </div>
 
-    <!-- Tableau Mois -->
+    <!-- Onglet Mois -->
     <div id="mois" class="tab-content hidden">
       <div class="bg-white rounded-xl shadow-lg p-6">
         <h3 class="text-xl font-bold mb-6 text-gray-800 flex items-center">
           <div class="w-1 h-6 bg-purple-500 rounded-full mr-3"></div>
           Heures par Mois
         </h3>
+
+        <!-- Formulaire choix mois -->
+        <form method="get" action="HeureDeTravailServlet" class="mb-6 flex items-center space-x-4">
+          <input type="hidden" name="action" value="filterMois">
+          <label for="monthSelect" class="font-semibold text-gray-700">Choisir un mois :</label>
+          <select id="monthSelect" name="month"
+                  class="px-4 py-2 border rounded-lg shadow-sm focus:ring focus:ring-purple-300">
+            <%
+              String[] moisFrancais = {"Janvier","Février","Mars","Avril","Mai","Juin",
+                                       "Juillet","Août","Septembre","Octobre","Novembre","Décembre"};
+              java.time.LocalDate nowM = java.time.LocalDate.now();
+              int moisActuel = nowM.getMonthValue();
+              
+              // Récupérer le mois sélectionné depuis les paramètres
+              String monthParamSelected = request.getParameter("month");
+              int moisSelectionne = moisActuel; // Par défaut
+              if (monthParamSelected != null && !monthParamSelected.trim().isEmpty()) {
+                try {
+                  moisSelectionne = Integer.parseInt(monthParamSelected);
+                } catch (NumberFormatException e) {
+                  moisSelectionne = moisActuel;
+                }
+              }
+              
+              for (int i = 1; i <= 12; i++) {
+            %>
+              <option value="<%= i %>" <%= (i == moisSelectionne ? "selected" : "") %>>
+                <%= moisFrancais[i-1] %>
+              </option>
+            <% } %>
+          </select>
+          <button type="submit"
+                  class="px-5 py-2 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition">
+            Voir
+          </button>
+        </form>
+
+        <!-- Tableau des heures par mois -->
         <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead>
               <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                 <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Nom Complet</th>
                 <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Mois</th>
-                <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Total Heures</th>
+                <th class="px-6 py-4 text-left font-semibold text-gray-700 border-b-2 border-gray-200">Heures Travaillées</th>
               </tr>
             </thead>
             <tbody>
               <% if (heuresMois != null && !heuresMois.isEmpty()) {
                    for (HeureDeTravail h : heuresMois) { 
-                     // Extraire le nom et le mois
-                     String nomComplet = h.getNomComplet();
-                     String moisAnnee = "";
-                     if (h.getDateTravail() != null) {
-                       java.time.LocalDate date = h.getDateTravail().toLocalDate();
-                       int moisNum = date.getMonthValue();
-                       int annee = date.getYear();
-                       
-                       String[] moisFrancais = {"", "JANVIER", "FÉVRIER", "MARS", "AVRIL", "MAI", "JUIN",
-                                               "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DÉCEMBRE"};
-                       moisAnnee = moisFrancais[moisNum] + " " + annee;
+                     String nomSeul = h.getNomComplet();
+                     String moisTexte = "";
+                     if (nomSeul.contains("(")) {
+                       moisTexte = nomSeul.substring(nomSeul.indexOf("(") + 1, nomSeul.indexOf(")"));
+                       nomSeul = nomSeul.substring(0, nomSeul.indexOf("(")).trim();
                      }
               %>
                 <tr class="border-b border-gray-100 hover:bg-purple-50 transition-colors">
-                  <td class="px-6 py-4 font-medium text-gray-900"><%= nomComplet %></td>
-                  <td class="px-6 py-4 text-gray-600"><%= moisAnnee %></td>
+                  <td class="px-6 py-4 font-medium text-gray-900"><%= nomSeul %></td>
+                  <td class="px-6 py-4 text-gray-600"><%= moisTexte %></td>
                   <td class="px-6 py-4">
                     <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full font-semibold"><%= h.getHeures() %></span>
                   </td>
@@ -310,10 +386,9 @@
 </div>
 
 <script>
-  const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
-  const sidebar = document.getElementById('sidebar');
-  btnToggleSidebar.addEventListener('click', () => {
-    sidebar.classList.toggle('-translate-x-full');
+  document.addEventListener("DOMContentLoaded", function() {
+    var activeTab = "<%= request.getAttribute("activeTab") != null ? request.getAttribute("activeTab") : "jour" %>";
+    switchTab(activeTab);
   });
 </script>
 
