@@ -134,12 +134,68 @@
             String couleurStatut = "-";
             String tooltip = "-";
 
+<<<<<<< HEAD
             if (pt.getDatePointage() != null && pt.getDateSortie() == null) {
               couleurStatut = "green";
               tooltip = "En train de travailler";
             } else if (pt.getDatePointage() != null && pt.getDateSortie() != null) {
               couleurStatut = "red";
               tooltip = "Sortie effectuée";
+=======
+                    if ("entree".equalsIgnoreCase(pt.getType())) {
+                        heures.put("entree", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                    } else if ("sortie".equalsIgnoreCase(pt.getType())) {
+                        heures.put("sortie", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
+                    }
+
+                    dernierParPersonnel.put(nomComplet, heures);
+                }
+
+                for (Map.Entry<String, Map<String, String>> entry : dernierParPersonnel.entrySet()) {
+                    String nomComplet = entry.getKey();
+                    Map<String, String> heures = entry.getValue();
+
+                    String entree = heures.get("entree");
+                    String sortie = heures.get("sortie");
+                    String couleurStatut = "-";
+                    String tooltip = "-";
+
+                    if (entree != null && sortie == null) {
+                        couleurStatut = "green";
+                        tooltip = "En train de travailler";
+                    } else if (entree != null && sortie != null) {
+                        couleurStatut = "red";
+                        tooltip = "Sortie effectuée";
+                    }
+        %>
+          <tr class="border-b border-gray-200">
+            <td class="pl-3 py-2"><%= nomComplet %></td>
+            <td class="py-2 text-center"><%= heures.getOrDefault("entree", "-") %></td>
+            <td class="py-2 text-center"><%= heures.getOrDefault("sortie", "-") %></td>
+            <td class="pr-3 py-2 text-center">
+              <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
+            </td>
+          </tr>
+        <%
+                }
+        %>
+          <!-- ✅ Légende -->
+          <tr>
+            <td colspan="4" class="pt-4">
+              <div class="flex items-center space-x-4 mt-2">
+                <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En train de travailler</span></div>
+                <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>Sortie</span></div>
+              </div>
+            </td>
+          </tr>
+        <%
+            } else {
+        %>
+          <tr>
+            <td colspan="4" class="text-center py-4">Aucun pointage aujourd'hui.</td>
+          </tr>
+        <%
+>>>>>>> 39346101d37159fcb0ec2706afca69d890eb05cd
             }
       %>
       <tr class="border-b border-gray-200">
