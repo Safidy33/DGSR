@@ -15,26 +15,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.HeureDeTravail;
 
 @WebServlet("/HeureDeTravailServlet")
 public class HeureDeTravailServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
-    public static class HeureDeTravail {
-        private String nomComplet;
-        private Date dateTravail;
-        private String heures; // Utilisé pour afficher les heures selon le contexte
-
-        public HeureDeTravail(String nomComplet, Date dateTravail, String heures) {
-            this.nomComplet = nomComplet;
-            this.dateTravail = dateTravail;
-            this.heures = heures;
-        }
-
-        public String getNomComplet() { return nomComplet; }
-        public Date getDateTravail() { return dateTravail; }
-        public String getHeures() { return heures; }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -52,7 +37,7 @@ public class HeureDeTravailServlet extends HttpServlet {
         String activeTab = "jour";
 
         try (Connection conn = Database.getConnection()) {
-            
+
             // ----------- HEURES PAR JOUR -----------
             String sqlJour = """
                 SELECT per.id, per.nom, per.prenom, DATE(ent.date_pointage) AS jour,
@@ -64,6 +49,14 @@ public class HeureDeTravailServlet extends HttpServlet {
                                  AND ent.type = 'entree'
                                  AND DATE(ent.date_pointage) = DATE(sor.date_pointage)
                                  AND sor.date_pointage > ent.date_pointage
+                                 AND NOT EXISTS (
+                                   SELECT 1 FROM pointage mid
+                                   WHERE mid.personnel_id = ent.personnel_id
+                                   AND mid.type IN ('entree', 'sortie')
+                                   AND DATE(mid.date_pointage) = DATE(ent.date_pointage)
+                                   AND mid.date_pointage > ent.date_pointage
+                                   AND mid.date_pointage < sor.date_pointage
+                                 )
                 JOIN personnel per ON per.id = ent.personnel_id
                 GROUP BY per.id, per.nom, per.prenom, DATE(ent.date_pointage)
                 ORDER BY per.nom, per.prenom, jour DESC;
@@ -71,20 +64,20 @@ public class HeureDeTravailServlet extends HttpServlet {
 
             try (PreparedStatement stmtJour = conn.prepareStatement(sqlJour);
                  ResultSet rsJour = stmtJour.executeQuery()) {
-                
+
                 while (rsJour.next()) {
                     String nomComplet = rsJour.getString("nom") + " " + rsJour.getString("prenom");
                     Date dateTravail = rsJour.getDate("jour");
                     String heuresJour_str = rsJour.getString("heures_jour");
-                    
+
                     heuresJour.add(new HeureDeTravail(nomComplet, dateTravail, heuresJour_str));
                 }
             }
 
             // ----------- HEURES PAR SEMAINE -----------
             String sqlSemaine = """
-                SELECT per.id, per.nom, per.prenom, 
-                       YEAR(e.date_pointage) AS annee, 
+                SELECT per.id, per.nom, per.prenom,
+                       YEAR(e.date_pointage) AS annee,
                        WEEK(e.date_pointage, 1) AS semaine_num,
                        MIN(DATE(e.date_pointage)) AS debut_semaine,
                        MAX(DATE(e.date_pointage)) AS fin_semaine,
@@ -96,6 +89,14 @@ public class HeureDeTravailServlet extends HttpServlet {
                                 AND e.type = 'entree'
                                 AND DATE(e.date_pointage) = DATE(s.date_pointage)
                                 AND s.date_pointage > e.date_pointage
+                                AND NOT EXISTS (
+                                   SELECT 1 FROM pointage mid
+                                   WHERE mid.personnel_id = e.personnel_id
+                                   AND mid.type IN ('entree', 'sortie')
+                                   AND DATE(mid.date_pointage) = DATE(e.date_pointage)
+                                   AND mid.date_pointage > e.date_pointage
+                                   AND mid.date_pointage < s.date_pointage
+                                )
                 JOIN personnel per ON per.id = e.personnel_id
                 GROUP BY per.id, per.nom, per.prenom, annee, semaine_num
                 HAVING 1=1
@@ -133,8 +134,8 @@ public class HeureDeTravailServlet extends HttpServlet {
 
             // ----------- HEURES PAR MOIS -----------
             String sqlMois = """
-                SELECT per.id, per.nom, per.prenom, 
-                       YEAR(e.date_pointage) AS annee, 
+                SELECT per.id, per.nom, per.prenom,
+                       YEAR(e.date_pointage) AS annee,
                        MONTH(e.date_pointage) AS mois_num,
                        CONCAT(FLOOR(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)) / 60), 'h ',
                               LPAD(MOD(SUM(TIMESTAMPDIFF(MINUTE, e.date_pointage, s.date_pointage)), 60), 2, '0'), 'min') AS heures_mois
@@ -144,6 +145,14 @@ public class HeureDeTravailServlet extends HttpServlet {
                                 AND e.type = 'entree'
                                 AND DATE(e.date_pointage) = DATE(s.date_pointage)
                                 AND s.date_pointage > e.date_pointage
+                                AND NOT EXISTS (
+                                   SELECT 1 FROM pointage mid
+                                   WHERE mid.personnel_id = e.personnel_id
+                                   AND mid.type IN ('entree', 'sortie')
+                                   AND DATE(mid.date_pointage) = DATE(e.date_pointage)
+                                   AND mid.date_pointage > e.date_pointage
+                                   AND mid.date_pointage < s.date_pointage
+                                )
                 JOIN personnel per ON per.id = e.personnel_id
                 GROUP BY per.id, per.nom, per.prenom, annee, mois_num
                 HAVING 1=1
@@ -185,7 +194,7 @@ public class HeureDeTravailServlet extends HttpServlet {
 
         request.getRequestDispatcher("heures_travail.jsp").forward(request, response);
     }
-    
+
     private String convertirNumeroMoisEnFrancais(int moisNum) {
         switch (moisNum) {
             case 1: return "JANVIER";

@@ -1,3 +1,4 @@
+
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
@@ -524,6 +525,8 @@ if (dateDebut == null) dateDebut = "";
             <!-- Informations de la date pour l'impression -->
                 <% if (dateDebut != null && !dateDebut.isEmpty()) { 
                     java.text.SimpleDateFormat sdfHeure = new java.text.SimpleDateFormat("HH:mm:ss");
+                    java.util.TimeZone tz = java.util.TimeZone.getTimeZone("UTC");
+                    sdf.setTimeZone(tz);
                     String heureActuelle = sdfHeure.format(new java.util.Date());
                 %>
                 <div class="print-only" style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 12px;">
@@ -560,7 +563,7 @@ if (dateDebut == null) dateDebut = "";
         if (pointages != null && !pointages.isEmpty()) { 
         %>
         <div class="bg-white rounded-lg shadow p-6 print-section mb-10">
-            <h2 class="section-title text-2xl font-bold text-blue-700">📋 Tableau des Pointages Détaillés</h2>
+            <h2 class="section-title text-2xl font-bold text-blue-700"> Tableau des Pointages Détaillés</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-900 <%= pointages.size() > 15 ? "large-table" : "" %>">
                     <thead class="text-xs uppercase text-gray-600 bg-gray-200">
@@ -572,9 +575,10 @@ if (dateDebut == null) dateDebut = "";
                         </tr>
                     </thead>
                     <tbody>
-                        <% 
-                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-                        for (Pointage pointage : pointages) { 
+                        <%
+                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss ");
+
+                        for (Pointage pointage : pointages) {
                         %>
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
                             <td class="px-4 py-3 text-center"><%= dateFormat.format(pointage.getDatePointage()) %></td>
@@ -596,7 +600,7 @@ if (dateDebut == null) dateDebut = "";
         <!-- Tableaux des personnels par département -->
         <% if (statutsPersonnels != null && !statutsPersonnels.isEmpty()) { %>
         <div class="bg-white rounded-lg shadow p-6 print-section">
-            <h2 class="section-title text-2xl font-bold text-green-700">👥 Tableau des Présences par Département</h2>
+            <h2 class="section-title text-2xl font-bold text-green-700"> Tableau des Présences par Département</h2>
         </div>
         <% 
             for (Map.Entry<String, List<Map<String, Object>>> entry : statutsPersonnels.entrySet()) {
@@ -605,9 +609,9 @@ if (dateDebut == null) dateDebut = "";
         %>
         <div class="bg-white rounded-lg shadow p-6 print-section department-section mb-10">
             <div class="department-header flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-800">🏢 Département: <%= departement %></h3>
+                <h3 class="text-xl font-bold text-gray-800"> Département: <%= departement %></h3>
                 <div class="department-count border border-gray-400 rounded-lg px-3 py-1 text-sm font-semibold select-none">
-                    👥 <%= personnelsDept.size() %> personnel(s)
+                     <%= personnelsDept.size() %> personnel(s)
                 </div>
             </div>
             <div class="overflow-x-auto">

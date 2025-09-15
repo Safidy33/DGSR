@@ -139,89 +139,72 @@
       <section class="max-w-6xl mx-auto mb-16">
         <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
           
-          <!-- Section tableau de gauche -->
-          <div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
-            <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
-              Pointages récents
-            </div>
+         <!-- Section tableau de gauche -->
+<div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
+  <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
+    Pointages récents
+  </div>
+ <jsp:include page="table_pointages.jsp">
+    <jsp:param name="pointages" value="${derniersPointages}" />
+  </jsp:include>
+  <div class="flex justify-center">
+    <table class="max-w-4xl w-full text-sm text-left text-gray-900 border-collapse mt-4">
+      <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
+        <tr>
+          <th class="pl-3 py-2 font-semibold">Nom</th>
+          <th class="py-2 font-semibold text-center">Heure d'entrée</th>
+          <th class="py-2 font-semibold text-center">Heure de sortie</th>
+          <th class="pr-3 py-2 font-semibold text-center">Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+      <%
+        List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
+        if (pointages != null && !pointages.isEmpty()) {
+          java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
+          java.util.TimeZone tz = java.util.TimeZone.getTimeZone("UTC");
+          sdf.setTimeZone(tz);
 
-            <table class="w-full text-sm text-left text-gray-900 border-collapse mt-4">
-              <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
-                <tr>
-                  <th class="pl-3 py-2 font-semibold">Nom</th>
-                  <th class="py-2 font-semibold text-center">Heure d'entrée</th>
-                  <th class="py-2 font-semibold text-center">Heure de sortie</th>
-                  <th class="pr-3 py-2 font-semibold text-center">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-              <%
-                  List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
-                  if (pointages != null && !pointages.isEmpty()) {
-                      Map<String, Map<String, String>> dernierParPersonnel = new LinkedHashMap<>();
+          for (Pointage pt : pointages) {
+            String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
+            String entree = (pt.getDatePointage() != null) ? sdf.format(pt.getDatePointage()) : "-";
+            String sortie = (pt.getDateSortie() != null) ? sdf.format(pt.getDateSortie()) : "-";
 
-                      for (Pointage pt : pointages) {
-                          String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
-                          Map<String, String> heures = dernierParPersonnel.getOrDefault(nomComplet, new HashMap<>());
+            String couleurStatut = "-";
+            String tooltip = "-";
+            if (pt.getDatePointage() != null && pt.getDateSortie() == null) {
+              couleurStatut = "green";
+              tooltip = "En train de travailler";
+            } else if (pt.getDatePointage() != null && pt.getDateSortie() != null) {
+              couleurStatut = "red";
+              tooltip = "Sortie effectuée";
+            }
+      %>
+        <tr class="border-b border-gray-200">
+          <td class="pl-3 py-2"><%= nomComplet %></td>
+          <td class="py-2 text-center"><%= entree %></td>
+          <td class="py-2 text-center"><%= sortie %></td>
+          <td class="pr-3 py-2 text-center">
+            <% if (!"-".equals(couleurStatut)) { %>
+              <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
+            <% } %>
+          </td>
+        </tr>
+      <%
+          }
+        } else {
+      %>
+        <tr>
+          <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
+        </tr>
+      <%
+        }
+      %>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-                          if ("entree".equalsIgnoreCase(pt.getType())) {
-                              heures.put("entree", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
-                          } else if ("sortie".equalsIgnoreCase(pt.getType())) {
-                              heures.put("sortie", pt.getDatePointage().toLocalDateTime().toLocalTime().toString());
-                          }
-
-                          dernierParPersonnel.put(nomComplet, heures);
-                      }
-
-                      for (Map.Entry<String, Map<String, String>> entry : dernierParPersonnel.entrySet()) {
-                          String nomComplet = entry.getKey();
-                          Map<String, String> heures = entry.getValue();
-
-                          String entree = heures.get("entree");
-                          String sortie = heures.get("sortie");
-                          String couleurStatut = "-";
-                          String tooltip = "-";
-
-                          if (entree != null && sortie == null) {
-                              couleurStatut = "green";
-                              tooltip = "En train de travailler";
-                          } else if (entree != null && sortie != null) {
-                              couleurStatut = "red";
-                              tooltip = "Sortie effectuée";
-                          }
-              %>
-                <tr class="border-b border-gray-200">
-                  <td class="pl-3 py-2"><%= nomComplet %></td>
-                  <td class="py-2 text-center"><%= heures.getOrDefault("entree", "-") %></td>
-                  <td class="py-2 text-center"><%= heures.getOrDefault("sortie", "-") %></td>
-                  <td class="pr-3 py-2 text-center">
-                    <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
-                  </td>
-                </tr>
-              <%
-                      }
-              %>
-                <!-- Légende en bas du tableau -->
-                <tr>
-                  <td colspan="4" class="pt-4">
-                    <div class="flex items-center space-x-4 mt-2">
-                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: green;"></span><span>En cours</span></div>
-                      <div class="flex items-center space-x-1"><span class="status-dot" style="background-color: red;"></span><span>En interruption</span></div>
-                    </div>
-                  </td>
-                </tr>
-              <%
-                  } else {
-              %>
-                <tr>
-                  <td colspan="4" class="text-center py-4">Aucun pointage récent à afficher.</td>
-                </tr>
-              <%
-                  }
-              %>
-              </tbody>
-            </table>
-          </div>
 
           <!-- Section statistiques à droite -->
           <div class="space-y-6">

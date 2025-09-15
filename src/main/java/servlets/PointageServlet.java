@@ -3,8 +3,7 @@ package servlets;
 import utils.Database;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,83 +23,23 @@ public class PointageServlet extends HttpServlet {
         String action = request.getParameter("action");
         
         if ("voir_presents".equals(action)) {
-            // ✅ Page "Voir Présents"
-            List<Personnel> personnelsPresents = getPersonnelsPresents();
-            request.setAttribute("personnelsPresents", personnelsPresents);
+            request.setAttribute("personnelsPresents", getPersonnelsPresents());
             request.getRequestDispatcher("voir_presents.jsp").forward(request, response);
 
         } else if ("voir_absents".equals(action)) {
-            // ✅ Page "Voir Absents"
-            List<Personnel> personnelsAbsents = getPersonnelsAbsents();
-            request.setAttribute("personnelsAbsents", personnelsAbsents);
+            request.setAttribute("personnelsAbsents", getPersonnelsAbsents());
             request.getRequestDispatcher("absents.jsp").forward(request, response);
 
         } else if ("pointage".equals(action)) {
-            // ✅ Page "Pointage" - Afficher tous les pointages du jour
-            System.out.println("Pointage action called");
-            List<Pointage> pointagesDuJour = getPointagesDuJour();
-            System.out.println("Pointages du jour: " + (pointagesDuJour != null ? pointagesDuJour.size() : "null"));
+            List<Pointage> pointagesDuJour = getPointages(true);
             request.setAttribute("pointagesDuJour", pointagesDuJour);
             request.getRequestDispatcher("pointage.jsp").forward(request, response);
 
         } else {
-            System.out.println("Default case called - action parameter: " + action);
-            // ✅ Dashboard par défaut
-            List<Pointage> derniersPointages = new ArrayList<>();
-            int presentCount = 0;
-            int absentCount = 0;
-            int totalPersonnel = 0;
-
-            try (Connection conn = Database.getConnection()) {
-                // Récupérer les 10 derniers pointages du jour
-                String sql = "SELECT p.date_pointage, p.type, pe.nom, pe.prenom, p.statut " +
-                             "FROM pointage p " +
-                             "JOIN personnel pe ON p.personnel_id = pe.id " +
-                             "WHERE DATE(p.date_pointage) = CURRENT_DATE " +
-                             "ORDER BY p.date_pointage DESC " +
-                             "LIMIT 10";
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-
-                while (rs.next()) {
-                    Pointage pointage = new Pointage();
-                    pointage.setDatePointage(rs.getTimestamp("date_pointage"));
-                    pointage.setType(rs.getString("type"));
-                    pointage.setNomPersonnel(rs.getString("nom"));
-                    pointage.setPrenomPersonnel(rs.getString("prenom"));
-                    pointage.setStatut(rs.getString("statut"));
-                    derniersPointages.add(pointage);
-                }
-                rs.close();
-                ps.close();
-
-                // ✅ Total personnel
-                String sqlTotal = "SELECT COUNT(*) FROM personnel";
-                PreparedStatement psTotal = conn.prepareStatement(sqlTotal);
-                ResultSet rsTotal = psTotal.executeQuery();
-                if (rsTotal.next()) {
-                    totalPersonnel = rsTotal.getInt(1);
-                }
-                rsTotal.close();
-                psTotal.close();
-
-                // ✅ Présents aujourd'hui
-                String sqlPresent = "SELECT COUNT(DISTINCT personnel_id) FROM pointage " +
-                                   "WHERE DATE(date_pointage) = CURRENT_DATE";
-                PreparedStatement psPresent = conn.prepareStatement(sqlPresent);
-                ResultSet rsPresent = psPresent.executeQuery();
-                if (rsPresent.next()) {
-                    presentCount = rsPresent.getInt(1);
-                }
-                rsPresent.close();
-                psPresent.close();
-
-                // ✅ Absents
-                absentCount = totalPersonnel - presentCount;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            List<Pointage> derniersPointages = getPointages(false);
+            int totalPersonnel = getTotalPersonnel();
+            int presentCount = getPresentCount();
+            int absentCount = totalPersonnel - presentCount;
 
             request.setAttribute("derniersPointages", derniersPointages);
             request.setAttribute("presentCount", presentCount);
@@ -111,15 +50,72 @@ public class PointageServlet extends HttpServlet {
         }
     }
 
-    // ✅ Présents
+    // 🔹 Récupère et fusionne entrée/sortie
+    private List<Pointage> getPointages(boolean tout) {
+        List<Pointage> pointages = new ArrayList<>();
+        try (Connection conn = Database.getConnection()) {
+            String sql = """
+                SELECT pe.nom, pe.prenom, p.type, p.date_pointage, p.statut, p.personnel_id
+                FROM pointage p
+                JOIN personnel pe ON p.personnel_id = pe.id
+                WHERE DATE(p.date_pointage) = CURRENT_DATE
+                ORDER BY p.date_pointage ASC
+                """ + (tout ? "" : " LIMIT 20");
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            Map<Integer, Pointage> currentEntreeMap = new HashMap<>();
+            java.util.Calendar utcCalendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+
+            while (rs.next()) {
+                String nom = rs.getString("nom");
+                String prenom = rs.getString("prenom");
+                String type = rs.getString("type");
+                Timestamp datePointage = rs.getTimestamp("date_pointage", utcCalendar);
+                String statut = rs.getString("statut");
+                int personnelId = rs.getInt("personnel_id");
+
+                if ("entree".equalsIgnoreCase(type)) {
+                    Pointage entreePointage = new Pointage();
+                    entreePointage.setNomPersonnel(nom);
+                    entreePointage.setPrenomPersonnel(prenom);
+                    entreePointage.setDatePointage(datePointage);
+                    entreePointage.setStatut(statut);
+                    currentEntreeMap.put(personnelId, entreePointage);
+                } else if ("sortie".equalsIgnoreCase(type)) {
+                    Pointage entreePointage = currentEntreeMap.get(personnelId);
+                    if (entreePointage != null) {
+                        entreePointage.setDateSortie(datePointage);
+                        pointages.add(entreePointage);
+                        currentEntreeMap.remove(personnelId);
+                    } else {
+                        Pointage sortiePointage = new Pointage();
+                        sortiePointage.setNomPersonnel(nom);
+                        sortiePointage.setPrenomPersonnel(prenom);
+                        sortiePointage.setDateSortie(datePointage);
+                        sortiePointage.setStatut(statut);
+                        pointages.add(sortiePointage);
+                    }
+                }
+            }
+            pointages.addAll(currentEntreeMap.values());
+
+            rs.close();
+            ps.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pointages;
+    }
+
+    // 🔹 Présents
     private List<Personnel> getPersonnelsPresents() {
         List<Personnel> personnelsPresents = new ArrayList<>();
         try (Connection conn = Database.getConnection()) {
             String sql = "SELECT DISTINCT p.id, p.nom, p.prenom, p.numero_employe, p.departement, p.email, p.qr_code " +
-                         "FROM personnel p " +
-                         "JOIN pointage pt ON p.id = pt.personnel_id " +
-                         "WHERE DATE(pt.date_pointage) = CURRENT_DATE " +
-                         "ORDER BY p.nom, p.prenom";
+                         "FROM personnel p JOIN pointage pt ON p.id = pt.personnel_id " +
+                         "WHERE DATE(pt.date_pointage) = CURRENT_DATE ORDER BY p.nom, p.prenom";
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -135,23 +131,18 @@ public class PointageServlet extends HttpServlet {
             }
             rs.close();
             ps.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         return personnelsPresents;
     }
 
-    // ✅ Absents
+    // 🔹 Absents
     private List<Personnel> getPersonnelsAbsents() {
         List<Personnel> personnelsAbsents = new ArrayList<>();
         try (Connection conn = Database.getConnection()) {
-            // Tous les personnels qui n'ont PAS pointé aujourd'hui
             String sql = "SELECT p.id, p.nom, p.prenom, p.numero_employe, p.departement, p.email, p.qr_code " +
                          "FROM personnel p " +
-                         "WHERE p.id NOT IN ( " +
-                         "   SELECT DISTINCT personnel_id FROM pointage WHERE DATE(date_pointage) = CURRENT_DATE " +
-                         ") " +
-                         "ORDER by p.nom, p.prenom";
+                         "WHERE p.id NOT IN (SELECT DISTINCT personnel_id FROM pointage WHERE DATE(date_pointage) = CURRENT_DATE) " +
+                         "ORDER BY p.nom, p.prenom";
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -167,59 +158,32 @@ public class PointageServlet extends HttpServlet {
             }
             rs.close();
             ps.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         return personnelsAbsents;
     }
 
-    private List<Pointage> getPointagesDuJour() {
-        List<Pointage> pointagesDuJour = new ArrayList<>();
+    // 🔹 Compteurs
+    private int getTotalPersonnel() {
         try (Connection conn = Database.getConnection()) {
-            // Récupérer tous les pointages du jour
-            String sql = "SELECT p.date_pointage, p.type, pe.nom, pe.prenom, p.statut " +
-                         "FROM pointage p " +
-                         "JOIN personnel pe ON p.personnel_id = pe.id " +
-                         "WHERE DATE(p.date_pointage) = CURRENT_DATE " +
-                         "ORDER BY p.date_pointage DESC";
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM personnel");
             ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
 
-            while (rs.next()) {
-                Pointage pointage = new Pointage();
-                pointage.setDatePointage(rs.getTimestamp("date_pointage"));
-                pointage.setType(rs.getString("type"));
-                pointage.setNomPersonnel(rs.getString("nom"));
-                pointage.setPrenomPersonnel(rs.getString("prenom"));
-                pointage.setStatut(rs.getString("statut"));
-                pointagesDuJour.add(pointage);
-            }
-            rs.close();
-            ps.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return pointagesDuJour;
+    private int getPresentCount() {
+        try (Connection conn = Database.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(DISTINCT personnel_id) FROM pointage WHERE DATE(date_pointage) = CURRENT_DATE");
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        String action = request.getParameter("action");
-        
-        if ("voir_presents".equals(action)) {
-            List<Personnel> personnelsPresents = getPersonnelsPresents();
-            request.setAttribute("personnelsPresents", personnelsPresents);
-            request.getRequestDispatcher("voir_presents.jsp").forward(request, response);
-
-        } else if ("voir_absents".equals(action)) {
-            List<Personnel> personnelsAbsents = getPersonnelsAbsents();
-            request.setAttribute("personnelsAbsents", personnelsAbsents);
-            request.getRequestDispatcher("absents.jsp").forward(request, response);
-
-        } else {
-            response.sendRedirect("PointageServlet");
-        }
+        doGet(request, response); // 🔁 réutiliser la logique
     }
 }
