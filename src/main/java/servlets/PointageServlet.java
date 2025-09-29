@@ -55,9 +55,10 @@ public class PointageServlet extends HttpServlet {
         List<Pointage> pointages = new ArrayList<>();
         try (Connection conn = Database.getConnection()) {
             String sql = """
-                SELECT pe.nom, pe.prenom, p.type, p.date_pointage, p.statut, p.personnel_id
+                SELECT pe.nom, pe.prenom, p.type, p.date_pointage, p.statut, p.personnel_id, u.localisation
                 FROM pointage p
                 JOIN personnel pe ON p.personnel_id = pe.id
+                LEFT JOIN utilisateur u ON p.scanner_id = u.id
                 WHERE DATE(p.date_pointage) = CURRENT_DATE
                 ORDER BY p.date_pointage ASC
                 """ + (tout ? "" : " LIMIT 20");
@@ -75,6 +76,7 @@ public class PointageServlet extends HttpServlet {
                 Timestamp datePointage = rs.getTimestamp("date_pointage", utcCalendar);
                 String statut = rs.getString("statut");
                 int personnelId = rs.getInt("personnel_id");
+                String localisation = rs.getString("localisation");
 
                 if ("entree".equalsIgnoreCase(type)) {
                     Pointage entreePointage = new Pointage();
@@ -82,6 +84,7 @@ public class PointageServlet extends HttpServlet {
                     entreePointage.setPrenomPersonnel(prenom);
                     entreePointage.setDatePointage(datePointage);
                     entreePointage.setStatut(statut);
+                    entreePointage.setLocalisation(localisation);
                     currentEntreeMap.put(personnelId, entreePointage);
                 } else if ("sortie".equalsIgnoreCase(type)) {
                     Pointage entreePointage = currentEntreeMap.get(personnelId);
@@ -95,6 +98,7 @@ public class PointageServlet extends HttpServlet {
                         sortiePointage.setPrenomPersonnel(prenom);
                         sortiePointage.setDateSortie(datePointage);
                         sortiePointage.setStatut(statut);
+                        sortiePointage.setLocalisation(localisation);
                         pointages.add(sortiePointage);
                     }
                 }

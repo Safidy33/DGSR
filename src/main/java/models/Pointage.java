@@ -10,6 +10,7 @@ public class Pointage {
     private String prenomPersonnel;
     private String statut;
     private String departement;
+    private String localisation;
 
     // --- Getters et Setters ---
     public Timestamp getDatePointage() {
@@ -68,12 +69,20 @@ public class Pointage {
         this.departement = departement;
     }
 
+    public String getLocalisation() {
+        return localisation;
+    }
+
+    public void setLocalisation(String localisation) {
+        this.localisation = localisation;
+    }
+
     // --- Constructeurs ---
     public Pointage() {}
 
     public Pointage(Timestamp datePointage, Timestamp dateSortie, String type,
                     String nomPersonnel, String prenomPersonnel,
-                    String statut, String departement) {
+                    String statut, String departement, String localisation) {
         this.datePointage = datePointage;
         this.dateSortie = dateSortie;
         this.type = type;
@@ -81,6 +90,7 @@ public class Pointage {
         this.prenomPersonnel = prenomPersonnel;
         this.statut = statut;
         this.departement = departement;
+        this.localisation = localisation;
     }
 
 }
