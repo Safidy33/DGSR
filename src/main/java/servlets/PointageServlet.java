@@ -40,11 +40,13 @@ public class PointageServlet extends HttpServlet {
             int totalPersonnel = getTotalPersonnel();
             int presentCount = getPresentCount();
             int absentCount = totalPersonnel - presentCount;
+            List<Pointage> personnelsEnRetard = getPersonnelsEnRetard();
 
             request.setAttribute("derniersPointages", derniersPointages);
             request.setAttribute("presentCount", presentCount);
             request.setAttribute("absentCount", absentCount);
             request.setAttribute("totalPersonnel", totalPersonnel);
+            request.setAttribute("personnelsEnRetard", personnelsEnRetard);
 
             request.getRequestDispatcher("dashboard.jsp").forward(request, response);
         }
@@ -164,6 +166,43 @@ public class PointageServlet extends HttpServlet {
             ps.close();
         } catch (Exception e) { e.printStackTrace(); }
         return personnelsAbsents;
+    }
+
+    // 🔹 Personnels en retard (premier pointage après 8h05)
+    private List<Pointage> getPersonnelsEnRetard() {
+        List<Pointage> personnelsEnRetard = new ArrayList<>();
+        try (Connection conn = Database.getConnection()) {
+            String sql = """
+                SELECT pe.nom, pe.prenom, p.date_pointage, p.personnel_id
+                FROM pointage p
+                JOIN personnel pe ON p.personnel_id = pe.id
+                WHERE p.type = 'entree'
+                AND DATE(p.date_pointage) = CURRENT_DATE
+                AND TIME(p.date_pointage) > '08:05:00'
+                AND p.date_pointage = (
+                    SELECT MIN(p2.date_pointage)
+                    FROM pointage p2
+                    WHERE p2.personnel_id = p.personnel_id
+                    AND DATE(p2.date_pointage) = CURRENT_DATE
+                    AND p2.type = 'entree'
+                )
+                ORDER BY p.date_pointage ASC
+                """;
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Pointage pointage = new Pointage();
+                pointage.setNomPersonnel(rs.getString("nom"));
+                pointage.setPrenomPersonnel(rs.getString("prenom"));
+                pointage.setDatePointage(rs.getTimestamp("date_pointage"));
+                personnelsEnRetard.add(pointage);
+            }
+            rs.close();
+            ps.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return personnelsEnRetard;
     }
 
     // 🔹 Compteurs

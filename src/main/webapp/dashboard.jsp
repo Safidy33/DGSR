@@ -5,7 +5,6 @@
 <%@ page import="java.util.LinkedHashMap" %>
 <%@ page import="models.Pointage" %>
 
-
 <%
     String adminName = "Admin"; // valeur par défaut
     if (session != null && session.getAttribute("email") != null) {
@@ -87,6 +86,129 @@
     .total-icon {
       background: linear-gradient(135deg, #6b7280, #4b5563);
     }
+
+    /* Styles ajustés pour les tableaux */
+    .table-container {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    
+    .table-header {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .table-header.bg-red {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    
+    .custom-table thead {
+      background-color: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .custom-table th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    
+    .custom-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      color: #374151;
+    }
+    
+    .custom-table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+    
+    .custom-table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+    
+    .custom-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Alignements spécifiques */
+    .text-center-table {
+      text-align: center;
+    }
+    
+    .text-left-table {
+      text-align: left;
+    }
+    
+    .text-right-table {
+      text-align: right;
+    }
+    
+    /* Badge pour les en-têtes de tableau */
+    .table-badge {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .table-container {
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .custom-table {
+        font-size: 0.8rem;
+      }
+      
+      .custom-table th,
+      .custom-table td {
+        padding: 0.5rem 0.75rem;
+      }
+      
+      .table-header {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+      }
+    }
+
+    /* Layout principal ajusté */
+    .main-content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    
+    @media (max-width: 1024px) {
+      .main-content-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
   </style>
 </head>
 <body class="bg-white font-sans text-gray-800 min-h-screen flex flex-col">
@@ -124,90 +246,134 @@
 	<jsp:include page="Menu_rapide.jsp" />
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-auto p-6" display="center" >
+    <main class="flex-1 overflow-auto p-6">
       <nav class="bg-blue-900 rounded-xl w-full max-w-4xl py-2 px-4 flex space-x-6 text-white font-semibold shadow-lg mb-8 mx-auto justify-center">
         <a href="PointageServlet" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Tableau de Bord</a>
         <a href="gerer-personnel" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Gérer Personnel</a>
-
         <a href="PointageServlet?action=pointage" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Pointage</a>
         <a href="RapportServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Rapport</a>
         <a href="HeureDeTravailServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
-
       </nav>
 
       <!-- Contenu dynamique avec nouveau layout -->
       <section class="max-w-6xl mx-auto mb-16">
-        <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+        <div class="main-content-grid">
           
-         <!-- Section tableau de gauche -->
-<div class="bg-gray-50 rounded-lg shadow p-6 space-y-4">
-  <div class="border border-gray-400 rounded-lg inline-block px-3 py-1 text-sm font-semibold select-none">
-    Pointages récents
-  </div>
- <jsp:include page="table_pointages.jsp">
-    <jsp:param name="pointages" value="${derniersPointages}" />
-  </jsp:include>
-  <div class="flex justify-center">
-    <table class="max-w-4xl w-full text-sm text-left text-gray-900 border-collapse mt-4">
-      <thead class="text-xs uppercase text-gray-600 border-b border-gray-300">
-        <tr>
-          <th class="pl-3 py-2 font-semibold">Nom</th>
-          <th class="py-2 font-semibold text-center">Heure d'entrée</th>
-          <th class="py-2 font-semibold text-center">Heure de sortie</th>
-          <th class="py-2 font-semibold text-center">Statut</th>
-          <th class="pr-3 py-2 font-semibold text-center">Localisation</th>
-        </tr>
-      </thead>
-      <tbody>
-      <%
-        List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
-        if (pointages != null && !pointages.isEmpty()) {
-          java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-          java.util.TimeZone tz = java.util.TimeZone.getTimeZone("UTC");
-          sdf.setTimeZone(tz);
+          <!-- Section gauche avec les tableaux -->
+          <div class="space-y-6">
+            
+            <!-- Tableau Pointages récents -->
+            <div class="table-container">
+              <div class="table-header">
+                <span>Pointages récents</span>
+                <span class="table-badge">Aujourd'hui</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left-table">Nom</th>
+                      <th class="text-center-table">Heure d'entrée</th>
+                      <th class="text-center-table">Heure de sortie</th>
+                      <th class="text-center-table">Statut</th>
+                      <th class="text-center-table">Localisation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  <%
+                    List<Pointage> pointages = (List<Pointage>) request.getAttribute("derniersPointages");
+                    if (pointages != null && !pointages.isEmpty()) {
+                      java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
+                      java.util.TimeZone tz = java.util.TimeZone.getTimeZone("UTC");
+                      sdf.setTimeZone(tz);
 
-          for (Pointage pt : pointages) {
-            String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
-            String entree = (pt.getDatePointage() != null) ? sdf.format(pt.getDatePointage()) : "-";
-            String sortie = (pt.getDateSortie() != null) ? sdf.format(pt.getDateSortie()) : "-";
+                      for (Pointage pt : pointages) {
+                        String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
+                        String entree = (pt.getDatePointage() != null) ? sdf.format(pt.getDatePointage()) : "-";
+                        String sortie = (pt.getDateSortie() != null) ? sdf.format(pt.getDateSortie()) : "-";
 
-            String couleurStatut = "-";
-            String tooltip = "-";
-            if (pt.getDatePointage() != null && pt.getDateSortie() == null) {
-              couleurStatut = "green";
-              tooltip = "En train de travailler";
-            } else if (pt.getDatePointage() != null && pt.getDateSortie() != null) {
-              couleurStatut = "red";
-              tooltip = "Sortie effectuée";
-            }
-      %>
-        <tr class="border-b border-gray-200">
-          <td class="pl-3 py-2"><%= nomComplet %></td>
-          <td class="py-2 text-center"><%= entree %></td>
-          <td class="py-2 text-center"><%= sortie %></td>
-          <td class="py-2 text-center">
-            <% if (!"-".equals(couleurStatut)) { %>
-              <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
-            <% } %>
-          </td>
-          <td class="pr-3 py-2 text-center"><%= pt.getLocalisation() != null ? pt.getLocalisation() : "-" %></td>
-        </tr>
-      <%
-          }
-        } else {
-      %>
-        <tr>
-          <td colspan="5" class="text-center py-4">Aucun pointage récent à afficher.</td>
-        </tr>
-      <%
-        }
-      %>
-      </tbody>
-    </table>
-  </div>
-</div>
+                        String couleurStatut = "-";
+                        String tooltip = "-";
+                        if (pt.getDatePointage() != null && pt.getDateSortie() == null) {
+                          couleurStatut = "green";
+                          tooltip = "En train de travailler";
+                        } else if (pt.getDatePointage() != null && pt.getDateSortie() != null) {
+                          couleurStatut = "red";
+                          tooltip = "Sortie effectuée";
+                        }
+                  %>
+                    <tr>
+                      <td class="text-left-table"><%= nomComplet %></td>
+                      <td class="text-center-table"><%= entree %></td>
+                      <td class="text-center-table"><%= sortie %></td>
+                      <td class="text-center-table">
+                        <% if (!"-".equals(couleurStatut)) { %>
+                          <span class="status-dot" style="background-color: <%= couleurStatut %>;" title="<%= tooltip %>"></span>
+                        <% } %>
+                      </td>
+                      <td class="text-center-table"><%= pt.getLocalisation() != null ? pt.getLocalisation() : "-" %></td>
+                    </tr>
+                  <%
+                      }
+                    } else {
+                  %>
+                    <tr>
+                      <td colspan="5" class="text-center-table py-4 text-gray-500">Aucun pointage récent à afficher.</td>
+                    </tr>
+                  <%
+                    }
+                  %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
+            <!-- Tableau Personnels en Retard -->
+            <div class="table-container">
+              <div class="table-header bg-red">
+                <span>Personnels en retard</span>
+                <span class="table-badge">Alertes</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left-table">Nom</th>
+                      <th class="text-center-table">Heure d'entrée</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  <%
+                    List<Pointage> personnelsEnRetard = (List<Pointage>) request.getAttribute("personnelsEnRetard");
+                    if (personnelsEnRetard != null && !personnelsEnRetard.isEmpty()) {
+                      java.text.SimpleDateFormat sdfRetard = new java.text.SimpleDateFormat("HH:mm");
+                      java.util.TimeZone tzRetard = java.util.TimeZone.getTimeZone("UTC");
+                      sdfRetard.setTimeZone(tzRetard);
 
+                      for (Pointage pt : personnelsEnRetard) {
+                        String nomComplet = pt.getNomPersonnel() + " " + pt.getPrenomPersonnel();
+                        String entree = (pt.getDatePointage() != null) ? sdfRetard.format(pt.getDatePointage()) : "-";
+                  %>
+                    <tr>
+                      <td class="text-left-table"><%= nomComplet %></td>
+                      <td class="text-center-table"><%= entree %></td>
+                    </tr>
+                  <%
+                      }
+                    } else {
+                  %>
+                    <tr>
+                      <td colspan="2" class="text-center-table py-4 text-gray-500">Aucun personnel en retard.</td>
+                    </tr>
+                  <%
+                    }
+                  %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
 
           <!-- Section statistiques à droite -->
           <div class="space-y-6">

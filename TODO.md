@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TODO: Fix Display of Selected Parameters in Report
 
 ## Steps from Approved Plan
@@ -23,3 +24,9 @@
 - [x] Added coherence verification in RapportServlet.java to ensure selected personnel belongs to the selected department.
 - [x] If incoherent, display no results and log the issue.
 - [x] Added verifierPersonnelDansDepartement method for database check.
+=======
+- [x] Ajouter la méthode getPersonnelsEnRetard() dans PointageServlet.java
+- [x] Modifier doGet dans PointageServlet.java pour définir l'attribut "personnelsEnRetard"
+- [x] Modifier dashboard.jsp pour ajouter la section des personnels en retard en dessous du tableau des pointages récents
+- [x] Séparer les tableaux : pointages récents et personnels en retard dans des divs distincts
+>>>>>>> b49d3a06c2188bcb5ffe1af383fc7927b0a46648
