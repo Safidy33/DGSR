@@ -1,18 +1,30 @@
-
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="models.Pointage" %>
+<%@ page import="models.Personnel" %>
 <%
 String adminName = "Admin";
 if (session != null && session.getAttribute("email") != null) {
     adminName = (String) session.getAttribute("email");
 }
 
+List<Personnel> tousPersonnels = (List<Personnel>) request.getAttribute("tousPersonnels");
 List<String> tousDepartements = (List<String>) request.getAttribute("tousDepartements");
 Map<String, List<Map<String, Object>>> statutsPersonnels = (Map<String, List<Map<String, Object>>>) request.getAttribute("statutsPersonnels");
-String dateDebut = (String) request.getAttribute("dateDebut");
-if (dateDebut == null) dateDebut = "";
+String dateDebut = request.getParameter("date_debut");
+if (dateDebut == null || dateDebut.trim().isEmpty()) dateDebut = "";
+String personnelId = request.getParameter("personnel_id");
+if (personnelId == null || personnelId.trim().isEmpty()) personnelId = "tous";
+String departement = request.getParameter("departement");
+if (departement == null || departement.trim().isEmpty()) departement = "";
+
+// Récupérer les pointages
+List<Pointage> pointages = (List<Pointage>) request.getAttribute("pointages");
+
+// Vérifier si un rapport a été généré
+String actionParam = request.getParameter("action");
+boolean rapportGenere = "generer_rapport".equals(actionParam);
 %>
 
 <!DOCTYPE html>
@@ -102,22 +114,16 @@ if (dateDebut == null) dateDebut = "";
             
             /* Logo dans l'en-tête d'impression */
             .print-logo {
-                display: none;
+                display: block !important;
+                text-align: center;
+                margin: 15px 0;
             }
             
-            @media print {
-                .print-logo {
-                    display: block !important;
-                    text-align: center;
-                    margin: 15px 0;
-                }
-                
-                .print-logo img {
-                    width: 60px;
-                    height: 60px;
-                    object-fit: contain;
-                    margin: 0 auto;
-                }
+            .print-logo img {
+                width: 60px;
+                height: 60px;
+                object-fit: contain;
+                margin: 0 auto;
             }
             
             .ministry-name {
@@ -318,33 +324,22 @@ if (dateDebut == null) dateDebut = "";
                 border-radius: 5px;
             }
             
-            /* Pied de page automatique */
-            .print-footer {
-                position: fixed;
-                bottom: 1cm;
-                left: 0;
-                right: 0;
-                text-align: center;
-                font-size: 9px;
-                color: #666;
-                border-top: 1px solid #ccc;
-                padding-top: 5px;
+            /* Style pour les cellules de noms */
+            td:nth-child(2), td:nth-child(3) {
+                text-align: left !important;
+                padding-left: 8px !important;
             }
             
-            /* Numérotation des pages */
-            @page {
-                @bottom-center {
-                    content: "Page " counter(page) " sur " counter(pages);
-                    font-size: 9px;
-                    color: #666;
-                }
-                
-                @top-right {
-                    content: "Confidentiel - Direction Générale de la Sécurité Routière";
-                    font-size: 8px;
-                    color: #999;
-                    font-style: italic;
-                }
+            /* Style pour les numéros de ligne */
+            td:nth-child(1) {
+                font-weight: 600;
+                background: #f1f5f9 !important;
+                color: #475569;
+            }
+            
+            /* Amélioration de la lisibilité */
+            table {
+                border: 2px solid #2d3748;
             }
             
             /* Éviter les coupures de page indésirables */
@@ -369,42 +364,6 @@ if (dateDebut == null) dateDebut = "";
                 margin-bottom: 20px !important;
                 box-shadow: none !important;
                 border: none !important;
-            }
-            
-            /* Style pour les cellules de noms */
-            td:nth-child(2), td:nth-child(3) {
-                text-align: left !important;
-                padding-left: 8px !important;
-            }
-            
-            /* Style pour les numéros de ligne */
-            td:nth-child(1) {
-                font-weight: 600;
-                background: #f1f5f9 !important;
-                color: #475569;
-            }
-            
-            /* Amélioration de la lisibilité */
-            table {
-                border: 2px solid #2d3748;
-            }
-            
-            /* Signature et validation */
-            .signature-section {
-                margin-top: 40px;
-                display: flex;
-                justify-content: space-between;
-                page-break-inside: avoid;
-            }
-            
-            .signature-box {
-                width: 45%;
-                text-align: center;
-                border-top: 1px solid #000;
-                padding-top: 8px;
-                margin-top: 30px;
-                font-size: 10px;
-                font-weight: bold;
             }
         }
         
@@ -488,8 +447,9 @@ if (dateDebut == null) dateDebut = "";
         <a href="RapportServlet" class="nav-item px-4 py-2 active rounded-lg cursor-pointer">Rapport</a>
         <a href="HeureDeTravailServlet" class="nav-item px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 hover:text-white transition">Heures de Travails</a>
       </nav>
+        
         <!-- En-tête officiel (visible uniquement à l'impression) -->
-        <div class="print-header no-print" style="display: none;">
+        <div class="print-header" style="display: none;">
             <div class="official-header">
                 <div class="ministry-name">REPUBLIQUE MALAGASY</div>
                 <div class="ministry-name">Fitiavana - Tanindrazana - Fandrosoana</div>
@@ -523,47 +483,142 @@ if (dateDebut == null) dateDebut = "";
             <div class="document-title">RAPPORT DE POINTAGE PAR DÉPARTEMENT</div>
             
             <!-- Informations de la date pour l'impression -->
-                <% if (dateDebut != null && !dateDebut.isEmpty()) { 
-                    java.text.SimpleDateFormat sdfHeure = new java.text.SimpleDateFormat("HH:mm:ss");
-                    java.util.TimeZone tz = java.util.TimeZone.getTimeZone("UTC");
-                    sdf.setTimeZone(tz);
-                    String heureActuelle = sdfHeure.format(new java.util.Date());
-                %>
-                <div class="print-only" style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 12px;">
-                    Date du rapport : <%= dateDebut %> à <%= heureActuelle %>
-                </div>
-                <% } %>
+            <% if (dateDebut != null && !dateDebut.isEmpty()) { 
+                java.text.SimpleDateFormat sdfHeure = new java.text.SimpleDateFormat("HH:mm:ss");
+                String heureActuelle = sdfHeure.format(new java.util.Date());
+            %>
+            <div class="print-only" style="margin: 15px 0; text-align: center; font-weight: bold; font-size: 12px;">
+                Date du rapport : <%= dateDebut %> à <%= heureActuelle %>
+            </div>
+            <% } %>
         </div>
+
+        <!-- DEBUG SECTION (à supprimer en production) -->
+        <% 
+        boolean isDebug = true; // Mettre à false en production
+        if (isDebug) { 
+        %>
+        <div class="bg-yellow-100 border-2 border-yellow-500 rounded-lg p-4 mb-6 no-print">
+            <h3 class="font-bold text-lg mb-2">🔍 Informations de Debug</h3>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                <div><strong>Action:</strong> <%= request.getParameter("action") %></div>
+                <div><strong>Date:</strong> <%= dateDebut != null && !dateDebut.isEmpty() ? dateDebut : "NON DÉFINIE" %></div>
+                <div><strong>Personnel ID:</strong> <%= personnelId %></div>
+                <div><strong>Département:</strong> <%= departement %></div>
+                <div><strong>Pointages:</strong> <%= pointages != null ? pointages.size() + " enregistrement(s)" : "NULL" %></div>
+                <div><strong>Statuts Personnels:</strong> 
+                    <%= statutsPersonnels != null ? statutsPersonnels.size() + " département(s)" : "NULL" %>
+                </div>
+                <div><strong>Tous Personnels:</strong> 
+                    <%= tousPersonnels != null ? tousPersonnels.size() : "NULL" %>
+                </div>
+                <div><strong>Tous Départements:</strong> 
+                    <%= tousDepartements != null ? tousDepartements.size() : "NULL" %>
+                </div>
+            </div>
+            
+            <% if (statutsPersonnels != null && !statutsPersonnels.isEmpty()) { %>
+            <div class="mt-3">
+                <strong>Départements trouvés:</strong>
+                <ul class="list-disc ml-5">
+                    <% for (String dept : statutsPersonnels.keySet()) { %>
+                        <li><%= dept %> : <%= statutsPersonnels.get(dept).size() %> personnel(s)</li>
+                    <% } %>
+                </ul>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
 
         <!-- Filtres -->
         <div class="bg-white rounded-lg shadow p-6 mb-8 no-print">
             <h2 class="text-xl font-bold text-gray-800 mb-6">Filtres</h2>
-            <form action="RapportServlet" method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form action="RapportServlet" method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <input type="hidden" name="action" value="generer_rapport">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                    <input type="date" name="date_debut" value="<%= dateDebut %>" 
+                    <input type="date" name="date_debut" value="<%= dateDebut %>"
                            class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Personnel</label>
+                    <input type="text" name="personnel_id" value="<%= personnelId != null && !"tous".equals(personnelId) ? personnelId : "" %>"
+                           placeholder="Rechercher un personnel..."
+                           class="w-full p-3 border border-gray-300 rounded-lg"
+                           list="personnels-list">
+                    <datalist id="personnels-list">
+                        <% if (tousPersonnels != null) { %>
+                            <% for (Personnel p : tousPersonnels) { %>
+                                <option value="<%= p.getId() %>" label="<%= p.getNom() + " " + p.getPrenom() %>">
+                            <% } %>
+                        <% } %>
+                    </datalist>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Service</label>
+                    <select name="departement" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="" <%= "".equals(departement) ? "selected" : "" %>>Sélectionner un service</option>
+                        <option value="tous" <%= "tous".equals(departement) ? "selected" : "" %>>Tous les services</option>
+                        <% if (tousDepartements != null) { %>
+                            <% for (String dept : tousDepartements) { %>
+                                <option value="<%= dept %>" <%= dept.equals(departement) ? "selected" : "" %>>
+                                    <%= dept %>
+                                </option>
+                            <% } %>
+                        <% } %>
+                    </select>
                 </div>
                 <div class="flex items-end space-x-4">
                     <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold">
                         Générer Rapport
                     </button>
-                    <button type="button" onclick="imprimerRapport()" 
+                    <button type="button" onclick="imprimerRapport()"
                             class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold">
                         Imprimer
                     </button>
                 </div>
             </form>
+
+            <% if (rapportGenere) { %>
+            <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-bold text-blue-700 mb-4">Paramètres Sélectionnés</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div><strong>Date:</strong> <%= dateDebut != null && !dateDebut.isEmpty() ? dateDebut : "Non spécifiée" %></div>
+                    <div><strong>Personnel:</strong> <%= "tous".equals(personnelId) ? "Tous les personnels" : personnelId %></div>
+                    <div><strong>Département:</strong> <%= "tous".equals(departement) ? "Tous les départements" : (departement != null ? departement : "Non spécifié") %></div>
+                </div>
+            </div>
+            <% } %>
         </div>
 
-        <!-- Tableau des pointages détaillés -->
-        <% 
-        List<Pointage> pointages = (List<Pointage>) request.getAttribute("pointages");
-        if (pointages != null && !pointages.isEmpty()) { 
+        <%
+        // Les variables pointages, actionParam et rapportGenere sont déjà déclarées en haut
         %>
+
+        <!-- Message si aucun rapport n'a été généré -->
+        <% if (!rapportGenere) { %>
+        <div class="bg-blue-50 border-2 border-blue-300 rounded-lg p-8 text-center">
+            <svg class="mx-auto h-16 w-16 text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">Aucun rapport généré</h3>
+            <p class="text-gray-600">Sélectionnez une date et cliquez sur "Générer Rapport" pour afficher les données.</p>
+        </div>
+        <% } else if (rapportGenere && (pointages == null || pointages.isEmpty()) && (statutsPersonnels == null || statutsPersonnels.isEmpty())) { %>
+        <div class="bg-orange-50 border-2 border-orange-300 rounded-lg p-8 text-center">
+            <svg class="mx-auto h-16 w-16 text-orange-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">Aucune donnée trouvée</h3>
+            <p class="text-gray-600">Aucun pointage n'a été trouvé pour les filtres sélectionnés.</p>
+            <p class="text-gray-500 text-sm mt-2">Date: <%= dateDebut != null && !dateDebut.isEmpty() ? dateDebut : "non spécifiée" %></p>
+        </div>
+        <% } else { %>
+
+        <!-- Tableau des pointages détaillés -->
+        <% if (pointages != null && !pointages.isEmpty()) { %>
         <div class="bg-white rounded-lg shadow p-6 print-section mb-10">
-            <h2 class="section-title text-2xl font-bold text-blue-700"> Tableau des Pointages Détaillés</h2>
+            <h2 class="section-title text-2xl font-bold text-blue-700">Tableau des Pointages Détaillés</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-900 <%= pointages.size() > 15 ? "large-table" : "" %>">
                     <thead class="text-xs uppercase text-gray-600 bg-gray-200">
@@ -576,7 +631,7 @@ if (dateDebut == null) dateDebut = "";
                     </thead>
                     <tbody>
                         <%
-                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss ");
+                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
                         for (Pointage pointage : pointages) {
                         %>
@@ -600,16 +655,16 @@ if (dateDebut == null) dateDebut = "";
         <!-- Tableaux des personnels par département -->
         <% if (statutsPersonnels != null && !statutsPersonnels.isEmpty()) { %>
         <div class="bg-white rounded-lg shadow p-6 print-section">
-            <h2 class="section-title text-2xl font-bold text-green-700"> Tableau des Présences par Département</h2>
+            <h2 class="section-title text-2xl font-bold text-green-700">Tableau des Présences par Département</h2>
         </div>
-        <% 
+        <%
             for (Map.Entry<String, List<Map<String, Object>>> entry : statutsPersonnels.entrySet()) {
-                String departement = entry.getKey();
+                String dept = entry.getKey();
                 List<Map<String, Object>> personnelsDept = entry.getValue();
         %>
         <div class="bg-white rounded-lg shadow p-6 print-section department-section mb-10">
             <div class="department-header flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-800"> Département: <%= departement %></h3>
+                <h3 class="text-xl font-bold text-gray-800">Département: <%= dept %></h3>
                 <div class="department-count border border-gray-400 rounded-lg px-3 py-1 text-sm font-semibold select-none">
                      <%= personnelsDept.size() %> personnel(s)
                 </div>
@@ -646,10 +701,8 @@ if (dateDebut == null) dateDebut = "";
             </div>
         </div>
         <% } %>
-        <% } else { %>
-        <div class="bg-gray-50 rounded-lg shadow p-6 text-center">
-            <div class="text-gray-500 text-lg">Aucun pointage trouvé avec les filtres sélectionnés.</div>
-        </div>
+        <% } %>
+        
         <% } %>
         
         <!-- Section de signature (visible uniquement à l'impression) -->
@@ -667,6 +720,7 @@ if (dateDebut == null) dateDebut = "";
             </div>
         </div>
     </main>
+    </div>
 
     <script>
         function imprimerRapport() {
@@ -675,9 +729,11 @@ if (dateDebut == null) dateDebut = "";
 
         const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
         const sidebar = document.getElementById('sidebar');
-        btnToggleSidebar.addEventListener('click', () => {
-          sidebar.classList.toggle('-translate-x-full');
-        });
+        if (btnToggleSidebar && sidebar) {
+            btnToggleSidebar.addEventListener('click', () => {
+              sidebar.classList.toggle('-translate-x-full');
+            });
+        }
     </script>
 </body>
 </html>
