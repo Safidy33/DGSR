@@ -1,7 +1,4 @@
-# TODO List for Login Error Display Update
-
-- [x] Update Login.jsp to display error messages in red for invalid credentials, empty fields, and server errors
-
-# TODO List for AuthFilter Redirect Loop Fix
-
-- [x] Update AuthFilter.java to skip filtering for Login.jsp to prevent redirect loop
+- [x] Ajouter la méthode getPersonnelsEnRetard() dans PointageServlet.java
+- [x] Modifier doGet dans PointageServlet.java pour définir l'attribut "personnelsEnRetard"
+- [x] Modifier dashboard.jsp pour ajouter la section des personnels en retard en dessous du tableau des pointages récents
+- [x] Séparer les tableaux : pointages récents et personnels en retard dans des divs distincts
